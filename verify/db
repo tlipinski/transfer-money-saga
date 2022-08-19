@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+echo === BALANCES ===
+
+echo -n "Total:            "
+cbq -q -u Administrator -p password -s "$(cat <<CQL
+SELECT SUM(balance) as totalBalance
+FROM money._default.balances
+CQL
+)" | jq '.results[].totalBalance'
+
+echo -n "Pending trans.:   "
+cbq -q -u Administrator -p password -s "$(cat <<CQL
+SELECT SUM(ARRAY_LENGTH(pending)) as totalPending
+FROM money._default.balances
+CQL
+)" | jq '.results[].totalPending'
+
+echo -n "Processed trans.: "
+cbq -q -u Administrator -p password -s "$(cat <<CQL
+SELECT SUM(ARRAY_LENGTH(processed)) totalProcessed
+FROM money._default.balances s
+CQL
+)" | jq '.results[].totalProcessed'
+
+echo
+echo === OUTBOX ===
+
+echo -n "Sent:     "
+cbq -q -u Administrator -p password -s "$(cat <<CQL
+SELECT COUNT(META().id) cnt
+FROM money._default.outbox
+WHERE _sent = true
+CQL
+)" | jq '.results[].cnt'
+
+echo -n "Unsent:   "
+cbq -q -u Administrator -p password -s "$(cat <<CQL
+SELECT COUNT(META().id) cnt
+FROM money._default.outbox
+WHERE _sent IS MISSING
+CQL
+)" | jq '.results[].cnt'
+
+
+echo
+echo === SAGAS ===
+
+echo -n "Completed:    "
+cbq -q -u Administrator -p password -s "$(cat <<CQL
+SELECT COUNT(*) cnt
+FROM money._default.sagas s
+WHERE stage.type="completed"
+CQL
+)" | jq '.results[].cnt'
+
+echo -n "Rolled back:  "
+cbq -q -u Administrator -p password -s "$(cat <<CQL
+SELECT COUNT(*) cnt
+FROM money._default.sagas s
+WHERE stage.type="rolled-back"
+CQL
+)" | jq '.results[].cnt'
+
+echo -n "In progress:  "
+cbq -q -u Administrator -p password -s "$(cat <<CQL
+SELECT COUNT(*) cnt
+FROM money._default.sagas s
+WHERE stage.type="in-progress"
+CQL
+)" | jq '.results[].cnt'
+

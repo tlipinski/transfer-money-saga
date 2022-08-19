@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+echo :::::::::::: BANK :::::::::::::::::::::::::
+kafkactl describe cg bank
+echo :::::::::::: TRANSFER-REPLY :::::::::::::::
+kafkactl describe cg transfers
+echo :::::::::::: DEAD-LETTER-QUEUE ::::::::::::
+kafkactl describe cg necromant
+
