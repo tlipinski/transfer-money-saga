@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+echo ------------------- BANK ------------------------
+kafkactl describe cg bank
+echo ------------------- TRANSFER-REPLY --------------------
+kafkactl describe cg money-transfer
+echo ------------------- BANK-DLQ --------------------
+kafkactl describe cg bank-dlq
+

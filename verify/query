@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+echo -n "Total balance:   "
+cbq -u Administrator -p password -s "$(cat <<CQL
+SELECT SUM(balance) as totalBalance
+FROM sagas
+WHERE META().id LIKE "balance::%"
+CQL
+)" | tail -n+8 | jq '.results[].totalBalance'
+
+echo -n "Total pending:   "
+cbq -u Administrator -p password -s "$(cat <<CQL
+SELECT SUM(ARRAY_LENGTH(pending)) as totalPending
+FROM sagas
+WHERE META().id LIKE "balance::%"
+CQL
+)" | tail -n+8 | jq '.results[].totalPending'
+
+echo -n "Total outbox:    "
+cbq -u Administrator -p password -s "$(cat <<CQL
+SELECT SUM(ARRAY_LENGTH(outbox)) as totalOutbox
+FROM sagas
+WHERE META().id LIKE "balance::%"
+CQL
+)" | tail -n+8 | jq '.results[].totalOutbox'
+
+echo -n "Total processed: "
+cbq -u Administrator -p password -s "$(cat <<CQL
+SELECT SUM(ARRAY_LENGTH(processed)) totalProcessed
+FROM sagas s
+WHERE META(s).id LIKE "balance::%"
+CQL
+)" | tail -n+8 | jq '.results[].totalProcessed'
+
+echo
+
+cbq -u Administrator -p password -s "$(cat <<CQL
+SELECT META().id, pending
+FROM sagas
+WHERE META().id LIKE "balance::%"
+AND pending
+LIMIT 10
+CQL
+)" | tail -n+10 | jq '.results'
+
