@@ -1,316 +1,120 @@
-val scalaVer = "2.13.6"
+import sbt.addCompilerPlugin
 
-val kafkaClients   = "org.apache.kafka"      % "kafka-clients"          % "2.8.0"
-val catsEffect     = "org.typelevel"        %% "cats-effect"            % "3.1.1"
-val typesafeConfig = "com.typesafe"          % "config"                 % "1.4.1"
-val fs2Core        = "co.fs2"               %% "fs2-core"               % "3.0.4"
-val fs2Kafka       = "com.github.fd4s"      %% "fs2-kafka"              % "2.1.0"
-val couchbaseJava  = "com.couchbase.client"  % "java-client"            % "3.1.5"
-val couchbaseScala = "com.couchbase.client" %% "scala-client"           % "1.2.1"
-val couchbaseTrans = "com.couchbase.client"  % "couchbase-transactions" % "1.2.1"
-val scalaLogging   = "org.typelevel"        %% "log4cats-slf4j"         % "2.1.1"
-val logbackClassic = "ch.qos.logback"        % "logback-classic"        % "1.2.3"
-val contextApplied = "org.augustjune"       %% "context-applied"        % "0.1.4"
-val sttp           =
-  "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % "3.3.5"
-val utest          = "com.lihaoyi"    %% "utest"      % "0.7.10" % Test
-val scalacheck     = "org.scalacheck" %% "scalacheck" % "1.14.1" % Test
-val scalatest      = "org.scalatest"  %% "scalatest"  % "3.2.9"  % Test
-val circeSeq       = Seq(
-  "circe-core",
-  "circe-generic",
-  "circe-generic-extras",
-  "circe-parser"
-).map("io.circe" %% _ % "0.14.1")
-val http4sSeq      = Seq(
-  "http4s-dsl",
-  "http4s-blaze-server",
-  "http4s-blaze-client",
-  "http4s-circe"
-).map("org.http4s" %% _ % "1.0.0-M23")
+ThisBuild / scalaVersion := "2.13.8"
+
+ThisBuild / scalacOptions ++= Seq(
+  "-language:higherKinds",
+  "-Ymacro-annotations",
+  "-deprecation"
+)
+
+ThisBuild / version := "1.0-SNAPSHOT"
+
+ThisBuild / Docker / version := git.gitHeadCommit.value.map(_.take(8)).getOrElse("latest")
+
+ThisBuild / assemblyMergeStrategy := {
+  case "logback.xml" => MergeStrategy.first
+  case x             =>
+    val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
+    oldStrategy(x)
+}
+
+val fs2Kafka       = "com.github.fd4s"               %% "fs2-kafka"                      % "2.5.0"
+val couchbaseJava  = "com.couchbase.client"           % "java-client"                    % "3.3.3"
+val couchbaseTrans = "com.couchbase.client"           % "couchbase-transactions"         % "1.2.4"
+val quicklens      = "com.softwaremill.quicklens"    %% "quicklens"                      % "1.8.8"
+val sttp           = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % "3.7.6"
+val scalatest      = "org.scalatest"                 %% "scalatest"                      % "3.2.13" % Test
+
+val circe =
+  Seq("circe-core", "circe-generic", "circe-generic-extras", "circe-parser").map("io.circe" %% _ % "0.14.2")
+
+val http4s =
+  Seq("http4s-dsl", "http4s-blaze-server", "http4s-blaze-client", "http4s-circe").map("org.http4s" %% _ % "1.0.0-M35")
+
+val commonDeps = Seq(
+  "org.typelevel" %% "log4cats-slf4j"  % "2.4.0",
+  "ch.qos.logback" % "logback-classic" % "1.2.11",
+  "org.typelevel" %% "cats-effect"     % "3.3.14"
+)
 
 lazy val transfers = project
   .in(file("transfers"))
   .settings(
-    name := "transfers",
-    version := "1.0-SNAPSHOT",
-    scalaVersion := scalaVer,
-    scalacOptions ++= Seq(
-      "-language:higherKinds",
-      "-Ymacro-annotations"
-    ),
-    libraryDependencies ++= Seq(
-      catsEffect,
-      kafkaClients,
-      typesafeConfig,
-      fs2Core,
-      fs2Kafka,
-      couchbaseJava,
-      scalaLogging,
-      logbackClassic,
-      sttp
-    ),
-    libraryDependencies ++= http4sSeq,
-    libraryDependencies ++= circeSeq,
-    addCompilerPlugin(contextApplied)
+    name                        := "transfers",
+    libraryDependencies ++= commonDeps ++ circe ++ http4s :+ sttp :+ quicklens,
+    Docker / dockerBaseImage    := "openjdk:8",
+    Docker / dockerExposedPorts := Seq(8080)
   )
-  .dependsOn(publisher, saga, outbox)
+  .enablePlugins(JavaAppPackaging)
+  .dependsOn(outbox, saga, util, database, consumer)
 
 lazy val bank = project
   .in(file("bank"))
   .settings(
-    name := "bank",
-    version := "1.0-SNAPSHOT",
-    scalaVersion := scalaVer,
-    scalacOptions ++= Seq(
-      "-language:higherKinds",
-      "-Ymacro-annotations",
-      "-deprecation"
-    ),
-    libraryDependencies ++= Seq(
-      catsEffect,
-      kafkaClients,
-      typesafeConfig,
-      fs2Core,
-      fs2Kafka,
-      couchbaseJava,
-      couchbaseTrans,
-      scalaLogging,
-      logbackClassic
-    ),
-    libraryDependencies ++= http4sSeq,
-    libraryDependencies ++= circeSeq,
-    libraryDependencies += utest,
-    libraryDependencies += scalatest,
-    libraryDependencies += scalacheck,
-    addCompilerPlugin(contextApplied)
+    name                     := "bank",
+    libraryDependencies ++= commonDeps ++ circe :+ scalatest :+ quicklens,
+    Docker / dockerBaseImage := "openjdk:8"
   )
-  .dependsOn(publisher, outbox)
-
-lazy val `bank-pg` = project
-  .in(file("bank-pg"))
-  .settings(
-    name := "bank-pg",
-    version := "1.0-SNAPSHOT",
-    scalaVersion := scalaVer,
-    scalacOptions ++= Seq(
-      "-language:higherKinds",
-      "-Ymacro-annotations",
-      "-deprecation"
-    ),
-    libraryDependencies ++= Seq(
-      catsEffect,
-      kafkaClients,
-      typesafeConfig,
-      fs2Core,
-      fs2Kafka,
-      scalaLogging,
-      logbackClassic,
-      "org.tpolecat" %% "doobie-core"     % "1.0.0-RC1",
-      "org.tpolecat" %% "doobie-postgres" % "1.0.0-RC1",
-      "org.tpolecat" %% "doobie-specs2"   % "1.0.0-RC1"
-    ),
-    libraryDependencies ++= http4sSeq,
-    libraryDependencies ++= circeSeq,
-    libraryDependencies += utest,
-    libraryDependencies += scalatest,
-    libraryDependencies += scalacheck,
-    addCompilerPlugin(contextApplied)
-  )
-  .dependsOn(publisher)
-
-lazy val `bank-sc` = project
-  .in(file("bank-sc"))
-  .settings(
-    name := "bank",
-    version := "1.0-SNAPSHOT",
-    scalaVersion := scalaVer,
-    scalacOptions ++= Seq(
-      "-language:higherKinds",
-      "-Ymacro-annotations",
-      "-deprecation"
-    ),
-    libraryDependencies ++= Seq(
-      catsEffect,
-      kafkaClients,
-      typesafeConfig,
-      fs2Core,
-      fs2Kafka,
-      couchbaseScala,
-      couchbaseTrans,
-      scalaLogging,
-      logbackClassic
-    ),
-    libraryDependencies ++= http4sSeq,
-    libraryDependencies ++= circeSeq,
-    libraryDependencies += utest,
-    libraryDependencies += scalatest,
-    libraryDependencies += scalacheck,
-    addCompilerPlugin(contextApplied)
-  )
-  .dependsOn(publisher)
-
-lazy val `bank-tx` = project
-  .in(file("bank-tx"))
-  .settings(
-    name := "bank",
-    version := "1.0-SNAPSHOT",
-    scalaVersion := scalaVer,
-    scalacOptions ++= Seq(
-      "-language:higherKinds",
-      "-Ymacro-annotations",
-      "-deprecation"
-    ),
-    libraryDependencies ++= Seq(
-      catsEffect,
-      kafkaClients,
-      typesafeConfig,
-      fs2Core,
-      fs2Kafka,
-      couchbaseJava,
-      couchbaseTrans,
-      scalaLogging,
-      logbackClassic
-    ),
-    libraryDependencies ++= http4sSeq,
-    libraryDependencies ++= circeSeq,
-    libraryDependencies += utest,
-    libraryDependencies += scalatest,
-    libraryDependencies += scalacheck,
-    addCompilerPlugin(contextApplied)
-  )
-  .dependsOn(publisher, outbox)
-
-lazy val `bank-outbox` = project
-  .in(file("bank-outbox"))
-  .settings(
-    name := "bank-outbox",
-    version := "1.0-SNAPSHOT",
-    scalaVersion := scalaVer,
-    scalacOptions ++= Seq(
-      "-language:higherKinds",
-      "-Ymacro-annotations",
-      "-deprecation"
-    ),
-    libraryDependencies ++= Seq(
-      catsEffect,
-      kafkaClients,
-      typesafeConfig,
-      fs2Core,
-      fs2Kafka,
-      couchbaseJava,
-      couchbaseTrans,
-      scalaLogging,
-      logbackClassic
-    ),
-    libraryDependencies ++= http4sSeq,
-    libraryDependencies ++= circeSeq,
-    libraryDependencies += utest,
-    libraryDependencies += scalatest,
-    libraryDependencies += scalacheck,
-    addCompilerPlugin(contextApplied)
-  )
-  .dependsOn(publisher, outbox)
+  .enablePlugins(JavaAppPackaging)
+  .dependsOn(consumer, outbox, database, util)
 
 lazy val outbox = project
   .in(file("outbox"))
   .settings(
-    name := "outbox",
-    version := "1.0-SNAPSHOT",
-    scalaVersion := scalaVer,
-    scalacOptions ++= Seq(
-      "-language:higherKinds",
-      "-Ymacro-annotations",
-      "-deprecation"
-    ),
-    libraryDependencies ++= Seq(
-      catsEffect,
-      kafkaClients,
-      typesafeConfig,
-      fs2Core,
-      fs2Kafka,
-      couchbaseJava,
-      couchbaseTrans,
-      scalaLogging,
-      logbackClassic
-    ),
-    libraryDependencies ++= http4sSeq,
-    libraryDependencies ++= circeSeq,
-    libraryDependencies += utest,
-    libraryDependencies += scalatest,
-    libraryDependencies += scalacheck,
-    addCompilerPlugin(contextApplied)
+    name                     := "outbox",
+    libraryDependencies ++= commonDeps :+ fs2Kafka,
+    Docker / dockerBaseImage := "openjdk:8"
   )
-  .dependsOn(publisher)
+  .enablePlugins(JavaAppPackaging)
+  .dependsOn(database)
 
-lazy val `bank-necromant` = project
-  .in(file("bank-necromant"))
+lazy val necromant = project
+  .in(file("necromant"))
   .settings(
-    name := "bank-necromant",
-    version := "1.0-SNAPSHOT",
-    scalaVersion := scalaVer,
-    scalacOptions ++= Seq(
-      "-language:higherKinds",
-      "-Ymacro-annotations",
-      "-deprecation"
-    ),
-    libraryDependencies ++= Seq(
-      catsEffect,
-      kafkaClients,
-      typesafeConfig,
-      fs2Core,
-      fs2Kafka,
-      scalaLogging,
-      logbackClassic
-    ),
-    libraryDependencies ++= http4sSeq,
-    libraryDependencies ++= circeSeq,
-    libraryDependencies += utest,
-    libraryDependencies += scalatest,
-    libraryDependencies += scalacheck,
-    addCompilerPlugin(contextApplied)
+    name                     := "necromant",
+    libraryDependencies ++= commonDeps,
+    Docker / dockerBaseImage := "openjdk:8"
   )
-  .dependsOn(publisher)
+  .enablePlugins(JavaAppPackaging)
+  .dependsOn(consumer)
 
-lazy val publisher = project
-  .in(file("publisher"))
+lazy val database = project
+  .in(file("database"))
   .settings(
-    name := "publisher",
-    version := "1.0-SNAPSHOT",
-    scalaVersion := scalaVer,
-    scalacOptions ++= Seq(
-      "-language:higherKinds",
-      "-Ymacro-annotations"
-    ),
-    libraryDependencies ++= Seq(
-      catsEffect,
-      typesafeConfig,
-      fs2Core,
-      fs2Kafka,
-      scalaLogging,
-      logbackClassic
-    ),
-    libraryDependencies ++= circeSeq,
-    libraryDependencies += utest,
-    addCompilerPlugin(contextApplied)
+    name := "database",
+    libraryDependencies ++= Seq(couchbaseJava, couchbaseTrans)
   )
+  .dependsOn(util)
+
+lazy val consumer = project
+  .in(file("consumer"))
+  .settings(
+    name := "consumer",
+    libraryDependencies ++= commonDeps :+ fs2Kafka
+  )
+  .dependsOn(util)
 
 lazy val saga = project
   .in(file("saga"))
   .settings(
     name := "saga",
-    version := "1.0-SNAPSHOT",
-    scalaVersion := scalaVer,
-    scalacOptions ++= Seq(
-      "-language:higherKinds",
-      "-Ymacro-annotations"
-    ),
-    libraryDependencies ++= Seq(
-      catsEffect,
-      scalaLogging,
-      logbackClassic,
-      utest
-    ),
-    libraryDependencies ++= circeSeq,
-    addCompilerPlugin(contextApplied)
+    libraryDependencies ++= commonDeps ++ circe :+ scalatest :+ quicklens
+  )
+  .dependsOn(util)
+
+lazy val `test-runner` = project
+  .in(file("test-runner"))
+  .settings(
+    name := "test-runner",
+    libraryDependencies ++= commonDeps ++ http4s :+ sttp,
+    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
+  )
+  .dependsOn(outbox, saga, util, database, consumer)
+
+lazy val util = project
+  .in(file("util"))
+  .settings(
+    name := "util",
+    libraryDependencies ++= commonDeps ++ circe
   )

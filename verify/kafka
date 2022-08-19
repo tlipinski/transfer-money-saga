@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-echo ------------------- BANK ------------------------
+echo :::::::::::: BANK :::::::::::::::::::::::::
 kafkactl describe cg bank
-echo ------------------- TRANSFER-REPLY --------------------
-kafkactl describe cg money-transfer
-echo ------------------- BANK-DLQ --------------------
-kafkactl describe cg bank-dlq
+echo :::::::::::: TRANSFER-REPLY :::::::::::::::
+kafkactl describe cg transfers
+echo :::::::::::: DEAD-LETTER-QUEUE ::::::::::::
+kafkactl describe cg necromant
 

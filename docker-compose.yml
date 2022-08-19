@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  outbox:
+    build: outbox/target/docker/stage
+    environment:
+      INFRA_HOST: "${HOST_IP}"
+      INSTANCE: 1
+      TOTAL_INSTANCES: 1
+
+  necromant:
+    build: necromant/target/docker/stage
+    environment:
+      INFRA_HOST: "${HOST_IP}"
+
+  bank:
+    build: bank/target/docker/stage
+    environment:
+      INFRA_HOST: "${HOST_IP}"
+
+  transfers:
+    build: transfers/target/docker/stage
+    ports:
+      - 8080:8080
+    environment:
+      INFRA_HOST: "${HOST_IP}"

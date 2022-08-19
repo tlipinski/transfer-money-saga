@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  outbox-1:
+    build: ../../outbox/target/docker/stage
+    environment:
+      INFRA_HOST: "${HOST_IP}"
+      INSTANCE: 1
+      TOTAL_INSTANCES: 3
+
+  outbox-2:
+    build: ../../outbox/target/docker/stage
+    environment:
+      INFRA_HOST: "${HOST_IP}"
+      INSTANCE: 2
+      TOTAL_INSTANCES: 3
+
+  outbox-3:
+    build: ../../outbox/target/docker/stage
+    environment:
+      INFRA_HOST: "${HOST_IP}"
+      INSTANCE: 3
+      TOTAL_INSTANCES: 3
+
+  bank:
+    build: ../../bank/target/docker/stage
+    deploy:
+      replicas: 3
+    environment:
+      INFRA_HOST: "${HOST_IP}"
+
+  transfers-main:
+    build: ../../transfers/target/docker/stage
+    deploy:
+      replicas: 1
+    ports:
+      - 8080:8080
+    environment:
+      INFRA_HOST: "${HOST_IP}"
+
+  transfers:
+    build: ../../transfers/target/docker/stage
+    deploy:
+      replicas: 2
+    environment:
+      INFRA_HOST: "${HOST_IP}"
