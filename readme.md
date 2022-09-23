@@ -123,46 +123,47 @@ Entry point for money transfer (with HTTP server). Defines steps for saga in a d
 Saga intentionally defines transferring money to the user first (which always succeeds) before transferring money from 
 the other user (may fail) just to simulate compensations. 
 ```scala
- SagaDefinition.create[MoneyTransfer, BankEvent, BankCommand](
+SagaDefinition.create[MoneyTransfer, BankEvent, BankCommand](
   Step(
-    id = "transfer-money-to",
-    command = transfer => transfer.changeBalanceTo,
-    compensation = transfer => transfer.rejectBalanceTo.some,
+    id = "credit",
+    command = transfer => transfer.creditBalance,
+    compensation = transfer => transfer.rejectBalanceCredit.some,
     handleResponse = {
-      case (event: BalanceChanged, transfer) if matches(event, transfer, _.to) =>
+      case (event: BalanceChanged, transfer: MoneyTransfer) if matches(event, transfer, _.credited) =>
         SagaForward
     }
   ),
   Step(
-    id = "transfer-money-from",
-    command = transfer => transfer.changeBalanceFrom,
-    compensation = transfer => transfer.rejectBalanceFrom.some,
+    id = "debit",
+    command = transfer => transfer.debitBalance,
+    compensation = transfer => transfer.rejectBalanceDebit.some,
     handleResponse = {
-      case (event: BalanceChanged, transfer) if matches(event, transfer, _.from) =>
+      case (event: BalanceChanged, transfer: MoneyTransfer) if matches(event, transfer, _.debited) =>
         SagaForward
 
-      case (event: BalanceNotChanged, transfer) if matches(event, transfer, _.from) =>
+      case (event: BalanceNotChanged, transfer: MoneyTransfer) if matches(event, transfer, _.debited) =>
         SagaRollback
     }
   ),
   Step(
-    id = "approve-transfer-from",
-    command = transfer => transfer.approveBalanceFrom,
+    id = "approve-debit",
+    command = transfer => transfer.approveBalanceDebit,
     compensation = _ => none,
     handleResponse = {
-      case (event: BalanceApproved, transfer) if matches(event, transfer, _.from) =>
+      case (event: BalanceApproved, transfer: MoneyTransfer) if matches(event, transfer, _.debited) =>
         SagaForward
     }
   ),
   Step(
-    id = "approve-transfer-to",
-    command = transfer => transfer.approveBalanceTo,
+    id = "approve-credit",
+    command = transfer => transfer.approveBalanceCredit,
     compensation = _ => none,
     handleResponse = {
-      case (event: BalanceApproved, transfer) if matches(event, transfer, _.to) =>
+      case (event: BalanceApproved, transfer: MoneyTransfer) if matches(event, transfer, _.credited) =>
         SagaForward
     }
   )
+)
 ```
 
 ### necromant
