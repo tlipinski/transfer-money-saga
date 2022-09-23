@@ -6,7 +6,7 @@ import net.tlipinski.moneytransfer.bank.domain.Balance
 import net.tlipinski.tx.Transactor.TxIO
 
 class BalanceRepo(collection: String) {
-  def use(userId: String)(f: Balance => IO[Option[Balance]]): TxIO[Unit] =
+  def modify(userId: String)(f: Balance => IO[Option[Balance]]): TxIO[Unit] =
     tx => {
       for {
         rand <- Random.scalaUtilRandom[IO]

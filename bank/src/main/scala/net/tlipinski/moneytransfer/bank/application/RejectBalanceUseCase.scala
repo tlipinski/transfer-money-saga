@@ -21,7 +21,7 @@ class RejectBalanceUseCase(
     val loggerCtx = logger.addContext(("tid", command.transferId), ("user", command.userId))
 
     transactor.run { tx =>
-      balanceRepo.use(command.userId) { balance =>
+      balanceRepo.modify(command.userId) { balance =>
         balance.reject(TransferId(command.transferId)) match {
           case Right(newBalance) =>
             loggerCtx.info(s"Balance rejected").as(newBalance.some)

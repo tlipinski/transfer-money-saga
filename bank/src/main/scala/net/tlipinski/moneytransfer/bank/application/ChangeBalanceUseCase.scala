@@ -23,7 +23,7 @@ class ChangeBalanceUseCase(
 
   def changeBalance(command: ChangeBalance, replyTo: Option[String]): IO[Unit] = {
     transactor.run { tx =>
-      balanceRepo.use(command.userId) {
+      balanceRepo.modify(command.userId) {
         val loggerCtx = logger.addContext(("tid", command.transferId), ("uid", command.userId))
         balance =>
           balance.changeBalance(TransferId(command.transferId), command.amount) match {
