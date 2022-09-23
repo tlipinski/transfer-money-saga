@@ -1,19 +1,20 @@
 # Transfer Money Saga (Process Manager)
 
-This is example project showing a few concepts from event driven architecture:
+The main purpose of this project was to see what requires special attention to when implementing Saga/Outbox patterns, what are the potential problems when such implementation is invalid or used in unstable environment. The project contains simplifications as well as intentional impediments and should not be treated as model implementation.
+You'll find here concepts from event driven architecture like:
 
 - events and commands
 - Saga / Process manager
 - outbox pattern
 - "exactly once" delivery
 
-You won't find here:
+You won't find:
 - event sourcing
 - CQRS
 
 Technically concept presented here is not Saga but Process Manager (it is a state machine with persisted state).
 This project started with simplistic approach and back then it might have been a Saga but at some point when
-it got a bit more complex it somehow turned into Process Manager.
+it got a bit more complex it somehow turned into Process Manager. Name Saga is still being used throughout the project although it may not be a proper name for implemented pattern.
 
 ## Running
 
