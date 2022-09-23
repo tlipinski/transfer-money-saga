@@ -10,9 +10,11 @@ class BalanceRepo(collection: String) {
     tx => {
       for {
         rand <- Random.scalaUtilRandom[IO]
-        r    <- rand.betweenInt(0, 10)
-        _    <- IO.raiseWhen(r == 0)(new RuntimeException("random fail on get"))
+        r1   <- rand.betweenInt(0, 10)
+        _    <- IO.raiseWhen(r1 == 0)(new RuntimeException("random fail 1"))
         _    <- tx.modify[Balance](collection, userId)(f)
+        r2   <- rand.betweenInt(0, 10)
+        _    <- IO.raiseWhen(r2 == 0)(new RuntimeException("random fail 2"))
       } yield ()
     }
 

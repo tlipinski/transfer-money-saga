@@ -18,7 +18,7 @@ object NecromantMain extends IOApp {
                       .withBootstrapServers(s"$infraHost:9092")
                       .withGroupId(s"necromant")
 //                      .withGroupId(s"necromant-${System.currentTimeMillis}")
-                      .withAutoOffsetReset(AutoOffsetReset.Latest)
+                      .withAutoOffsetReset(AutoOffsetReset.Earliest)
                   )
       producer <- KafkaProducer.resource(
                     ProducerSettings[IO, String, String]
