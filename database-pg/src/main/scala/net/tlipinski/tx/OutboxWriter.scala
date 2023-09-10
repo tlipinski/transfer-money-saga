@@ -1,38 +1,23 @@
 package net.tlipinski.tx
 
-import doobie.ConnectionIO
-import io.circe.Encoder
+import cats.implicits.toFunctorOps
+import doobie.implicits.toSqlInterpolator
+import doobie.postgres.circe.json.implicits._
+import doobie.{ConnectionIO, Write}
+import io.circe.syntax.EncoderOps
+import io.circe.{Encoder, Json}
+import net.tlipinski.tx.OutboxWriter.OutboxRow
 import net.tlipinski.util.Logging
 
-/*
-Couchbase doesn't have any useful hashing function which could be used for partitioning
-so precalculated keyHash value is provided in query.
-Keep in mind that hash of key must be consistent in the whole system so using JVM hashCode
-is probably not the best choice. MD5 or something similar would be better.
- */
-class OutboxWriter[A: Encoder](collection: String) extends Logging {
+class OutboxWriter[A: Encoder](table: String) extends Logging {
+  implicit val write: Write[A] = Write[Json].contramap(_.asJson)
   def save(topic: String, key: String, message: Message[A]): ConnectionIO[Unit] = {
-    //    for {
-    //      id   <- IO(UUID.randomUUID())
-    //      query =
-    //        s"""
-    //          |INSERT INTO ${tx.bucket.name}._default.${collection} (KEY, VALUE)
-    //          |VALUES (
-    //          |  "$id",
-    //          |  {
-    //          |    "id": "$id",
-    //          |    "topic": "$topic",
-    //          |    "key": "$key",
-    //          |    "keyHash": ${key.hashCode},
-    //          |    "message": ${message.message.asJson},
-    //          |    "replyTo": ${message.replyTo.asJson},
-    //          |    "timestamp": NOW_UTC()
-    //          |  }
-    //          |)
-    //          |""".stripMargin
-    //      _    <- tx.query(query)
-    //    } yield ()
-    ???
+    val outbox = OutboxRow(topic, key, key.hashCode, message.message)
+    sql"INSERT INTO outbox (topic, key, keyhash, message) VALUES ($outbox)".update.run.void
   }
 
+}
+
+object OutboxWriter {
+  case class OutboxRow[A](topic: String, key: String, keyHash: Int, message: A)
 }

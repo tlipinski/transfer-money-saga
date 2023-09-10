@@ -11,7 +11,7 @@ import doobie.util.log.LogEvent
 import io.circe.generic.JsonCodec
 import io.circe.syntax.EncoderOps
 import io.circe.{Codec, Json}
-import net.tlipinski.tx.Tx
+import net.tlipinski.tx.{Message, OutboxWriter, Tx}
 
 object Pg extends App {
 
@@ -54,8 +54,14 @@ object Pg extends App {
     }
   } yield (z)
 
-  val r = t.transact(xa).unsafeRunSync()
+  val tr = Transfer("c", "d", 100)
 
-  println(r)
+  val outbox = new OutboxWriter[Transfer]("outbox")
+
+  outbox.save("transfer", "kkk", Message.noReply(tr)).transact(xa).unsafeRunSync()
+
+  //  val r = t.transact(xa).unsafeRunSync()
+
+  //  println(r)
 
 }
