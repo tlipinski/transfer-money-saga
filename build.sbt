@@ -38,6 +38,13 @@ val commonDeps = Seq(
   "org.typelevel" %% "cats-effect"     % "3.3.14"
 )
 
+val doobie = Seq(
+  "doobie-core",
+  "doobie-hikari",
+  "doobie-postgres",
+  "doobie-postgres-circe"
+).map("org.tpolecat" %% _ % "1.0.0-RC4")
+
 lazy val transfers = project
   .in(file("transfers"))
   .settings(
@@ -47,7 +54,7 @@ lazy val transfers = project
     Docker / dockerExposedPorts := Seq(8080)
   )
   .enablePlugins(JavaAppPackaging)
-  .dependsOn(outbox, saga, util, database, consumer)
+  .dependsOn(outbox, saga, util, `database-pg`, consumer)
 
 lazy val bank = project
   .in(file("bank"))
@@ -67,7 +74,7 @@ lazy val outbox = project
     Docker / dockerBaseImage := "openjdk:8"
   )
   .enablePlugins(JavaAppPackaging)
-  .dependsOn(database)
+  .dependsOn(`database-pg`)
 
 lazy val necromant = project
   .in(file("necromant"))
@@ -84,6 +91,14 @@ lazy val database = project
   .settings(
     name := "database",
     libraryDependencies ++= Seq(couchbaseJava, couchbaseTrans)
+  )
+  .dependsOn(util)
+
+lazy val `database-pg` = project
+  .in(file("database-pg"))
+  .settings(
+    name := "database-pg",
+    libraryDependencies ++= doobie
   )
   .dependsOn(util)
 

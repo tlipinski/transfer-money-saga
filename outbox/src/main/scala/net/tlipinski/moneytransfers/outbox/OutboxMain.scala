@@ -1,10 +1,8 @@
 package net.tlipinski.moneytransfers.outbox
 
-import cats.effect.{ExitCode, IO, IOApp, Resource}
-import com.couchbase.client.java.Cluster
+import cats.effect.{ExitCode, IO, IOApp}
+import doobie.util.transactor.Transactor
 import fs2.kafka.{KafkaProducer, ProducerSettings}
-
-import scala.concurrent.duration._
 
 object OutboxMain extends IOApp {
 
@@ -14,29 +12,35 @@ object OutboxMain extends IOApp {
 
   val bucket = "money"
 
+  val xa = Transactor.fromDriverManager[IO](
+    driver = "org.postgresql.Driver",
+    url = "jdbc:postgresql:postgres",
+    user = "postgres",
+    password = "example",
+    logHandler = None
+  )
+
   override def run(args: List[String]): IO[ExitCode] = {
     (for {
       producer <- KafkaProducer.resource(
                     ProducerSettings[IO, String, String]
                       .withBootstrapServers(s"$infraHost:9092")
                   )
-      cluster  <- Resource.make(
-                    IO(Cluster.connect(infraHost, "Administrator", "password"))
-                  )(r => IO(r.disconnect()))
-    } yield (producer, cluster)).use { case (producer, cluster) =>
-      val collection = cluster.bucket(bucket).collection("outbox")
-      val worker     =
-        new Worker(
-          cluster,
-          collection,
-          producer,
-          20,
-          500.millis,
-          instance,
-          totalInstances
-        )
+    } yield (producer)).use { case producer =>
+      //      val collection = cluster.bucket(bucket).collection("outbox")
+      val worker = ???
+      //        new Worker(
+      //          cluster,
+      //          collection,
+      //          producer,
+      //          20,
+      //          500.millis,
+      //          instance,
+      //          totalInstances
+      //        )
 
-      worker.stream.compile.drain.as(ExitCode.Success)
+      //      worker.stream.compile.drain.as(ExitCode.Success)
+      ???
     }
   }
 
