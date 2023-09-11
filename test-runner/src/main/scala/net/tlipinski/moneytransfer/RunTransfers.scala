@@ -27,13 +27,8 @@ object RunTransfers extends IOApp with Logging {
 
     (for {
       sttp    <- AsyncHttpClientCatsBackend.resource[IO]()
-      cluster <- Resource.make(
-                   IO(Cluster.connect(infraHost, "Administrator", "password"))
-                 )(cluster => IO(cluster.disconnect()))
-    } yield (sttp, cluster)).use { case (sttp, cluster) =>
+    } yield (sttp)).use { case (sttp) =>
       for {
-        _ <- cleanupDb(cluster)
-        _ <- initDb(cluster, users)
         _ <- Range(0, requests).toList.traverse(sendRequest(sttp, _, users, maxAmount))
       } yield ExitCode.Success
     }
