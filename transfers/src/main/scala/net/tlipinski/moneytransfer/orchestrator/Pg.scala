@@ -11,7 +11,7 @@ import doobie.util.log.LogEvent
 import io.circe.generic.JsonCodec
 import io.circe.syntax.EncoderOps
 import io.circe.{Codec, Json}
-import net.tlipinski.tx.{Message, OutboxWriter, Tx}
+import net.tlipinski.tx.{Message, OutboxWriter, PG}
 
 object Pg extends App {
 
@@ -48,9 +48,9 @@ object Pg extends App {
   val id = "1"
 
   val t = for {
-    z <- Tx.modify[Transfer]("sagas", "1") { t =>
+    z <- PG.modify[Transfer]("sagas", "1") { t =>
       val newDoc = t.modify(_.amount)(_ + 100).modify(_.debited).setTo("xxxx")
-      Tx.insert("sagas", "aaa", newDoc).map { _ => newDoc.some }
+      PG.insert("sagas", "aaa", newDoc).map { _ => newDoc.some }
     }
   } yield (z)
 

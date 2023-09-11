@@ -4,10 +4,17 @@ import cats.effect.IO
 import cats.implicits._
 import doobie._
 import doobie.implicits._
+import doobie.postgres.circe.json.implicits._
+import io.circe.syntax.EncoderOps
+import io.circe.{Decoder, Encoder, Json}
 
-object Tx {
+object PG {
 
-  def modify[A: Read : Write](table: String, id: String)(
+  implicit def get[A: Decoder]: Get[A] = Get[Json].temap(_.as[A].leftMap(_.show))
+
+  implicit def put[A: Encoder]: Put[A] = Put[Json].contramap(_.asJson)
+
+  def modify[A: Encoder : Decoder](table: String, id: String)(
     f: A => ConnectionIO[Option[A]]
   ): ConnectionIO[(Row[A], Int)] = {
     for {
@@ -27,7 +34,7 @@ object Tx {
 
   }
 
-  def insert[A: Write](table: String, id: String, content: A): ConnectionIO[Unit] = {
+  def insert[A: Encoder](table: String, id: String, content: A): ConnectionIO[Unit] = {
     val row = Row[A](id, 0, content)
     (sql"INSERT INTO " ++ Fragment.const(table) ++ sql" VALUES ($row)").update.run.void
   }

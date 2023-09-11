@@ -19,9 +19,9 @@ class OutboxWriter[A: Encoder](table: String) extends Logging {
     for {
       id <- Sync[ConnectionIO].delay(UUID.randomUUID())
       outbox = OutboxRow[A](id, topic, key, key.hashCode, message.message)
-      _ <- (sql"INSERT INTO " ++ Fragment.const(
-        table
-      ) ++ sql" (id, topic, key, keyhash, message) VALUES ($outbox)").update.run.void
+      _ <- (sql"INSERT INTO " ++
+        Fragment.const(table) ++
+        sql" (id, topic, key, keyhash, message) VALUES ($outbox)").update.run.void
     } yield ()
   }
 
