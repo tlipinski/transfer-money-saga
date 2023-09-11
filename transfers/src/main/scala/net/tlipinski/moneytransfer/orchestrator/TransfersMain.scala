@@ -1,10 +1,15 @@
 package net.tlipinski.moneytransfer.orchestrator
 
 import cats.effect.{ExitCode, IO, IOApp}
-import doobie.Transactor
+import doobie.util.log.LogEvent
+import doobie.{LogHandler, Transactor}
 import fs2.Stream
 import fs2.kafka._
-import net.tlipinski.moneytransfer.orchestrator.application.{CommandsOutbox, HandleMessageUseCase, StartMoneyTransferUseCase}
+import net.tlipinski.moneytransfer.orchestrator.application.{
+  CommandsOutbox,
+  HandleMessageUseCase,
+  StartMoneyTransferUseCase
+}
 import net.tlipinski.moneytransfer.orchestrator.domain.{BankCommand, BankEvent}
 import net.tlipinski.moneytransfer.orchestrator.infra.{MoneyTransferRepo, TransferMoneyRoutes}
 import net.tlipinski.publisher.RecordHandler
@@ -25,12 +30,14 @@ object TransfersMain extends IOApp with Logging {
 
   val infraHost: String = sys.env("INFRA_HOST")
 
+  val printSqlLogHandler: LogHandler[IO] = (logEvent: LogEvent) => IO(println(logEvent))
+
   val xa = Transactor.fromDriverManager[IO](
     driver = "org.postgresql.Driver",
     url = "jdbc:postgresql:postgres",
     user = "postgres",
     password = "password",
-    logHandler = None
+    logHandler = Some(printSqlLogHandler)
   )
 
   override def run(args: List[String]): IO[ExitCode] = {

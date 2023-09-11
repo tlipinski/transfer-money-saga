@@ -46,21 +46,24 @@ object Pg extends App {
   implicit def put[A: Codec]: Put[A] = Put[Json].contramap(_.asJson)
 
   val id = "1"
+  val insert = PG.insert("sagas", "aaa", Transfer("cred", "deb", 100))
 
-  val t = for {
-    z <- PG.modify[Transfer]("sagas", "1") { t =>
-      val newDoc = t.modify(_.amount)(_ + 100).modify(_.debited).setTo("xxxx")
-      PG.insert("sagas", "aaa", newDoc).map { _ => newDoc.some }
-    }
-  } yield (z)
+//  val t = for {
+//    z <- PG.modify[Transfer]("sagas", "1") { t =>
+//      val newDoc = t.modify(_.amount)(_ + 100).modify(_.debited).setTo("xxxx")
+//      PG.insert("sagas", "aaa", newDoc).map { _ => newDoc.some }
+//    }
+//  } yield (z)
 
   val tr = Transfer("c", "d", 100)
 
   val outbox = new OutboxWriter[Transfer]("outbox")
 
-  outbox.save("transfer", "kkk", Message.noReply(tr)).transact(xa).unsafeRunSync()
+//  outbox.save("transfer", "kkk", Message.noReply(tr)).transact(xa).unsafeRunSync()
 
-  //  val r = t.transact(xa).unsafeRunSync()
+//    val r = t.transact(xa).unsafeRunSync()
+
+  val r = insert.transact(xa).unsafeRunSync()
 
   //  println(r)
 
