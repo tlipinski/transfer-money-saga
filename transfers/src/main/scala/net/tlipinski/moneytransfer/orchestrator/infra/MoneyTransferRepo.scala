@@ -11,8 +11,8 @@ import net.tlipinski.tx.PG
 class MoneyTransferRepo(collection: String) {
 
   def modify(
-              transferId: TransferId
-            )(f: Stage[MoneyTransfer] => ConnectionIO[Option[Stage[MoneyTransfer]]]): ConnectionIO[Unit] = {
+      transferId: TransferId
+  )(f: Stage[MoneyTransfer] => ConnectionIO[Option[Stage[MoneyTransfer]]]): ConnectionIO[Unit] = {
     PG.modify(collection, transferId.id)(f)
   }.void
 
