@@ -11,6 +11,16 @@ services:
     volumes:
       - ${PWD}/pg-init.sql:/docker-entrypoint-initdb.d/pg-init.sql
 
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@domain.com
+      PGADMIN_DEFAULT_PASSWORD: password
+      PGADMIN_LISTEN_ADDRESS: 0.0.0.0
+    ports:
+      - 9090:80
+
   zookeeper:
     image: wurstmeister/zookeeper
     ports:
