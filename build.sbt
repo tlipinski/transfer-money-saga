@@ -125,7 +125,7 @@ lazy val `test-runner` = project
     libraryDependencies ++= commonDeps ++ http4s :+ sttp,
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
   )
-  .dependsOn(outbox, saga, util, database, consumer)
+  .dependsOn(outbox, saga, util, `database-pg`, consumer)
 
 lazy val util = project
   .in(file("util"))

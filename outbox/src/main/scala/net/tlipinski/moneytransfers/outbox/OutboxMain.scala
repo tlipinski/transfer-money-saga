@@ -3,6 +3,7 @@ package net.tlipinski.moneytransfers.outbox
 import cats.effect.{ExitCode, IO, IOApp}
 import doobie.util.transactor.Transactor
 import fs2.kafka.{KafkaProducer, ProducerSettings}
+import net.tlipinski.tx.PG
 
 object OutboxMain extends IOApp {
 
@@ -12,13 +13,7 @@ object OutboxMain extends IOApp {
 
   val bucket = "money"
 
-  val xa = Transactor.fromDriverManager[IO](
-    driver = "org.postgresql.Driver",
-    url = "jdbc:postgresql:postgres",
-    user = "postgres",
-    password = "example",
-    logHandler = None
-  )
+  val xa = PG.xa(false)
 
   override def run(args: List[String]): IO[ExitCode] = {
     (for {

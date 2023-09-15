@@ -3,9 +3,12 @@ package net.tlipinski.moneytransfer
 import cats.effect._
 import cats.effect.std.Random
 import cats.implicits.toTraverseOps
-import com.couchbase.client.java.Cluster
-import com.couchbase.client.java.json.JsonObject
+import doobie.ConnectionIO
+import doobie.implicits._
 import fs2.Stream
+import io.circe.Json
+import io.circe.syntax.{EncoderOps, KeyOps}
+import net.tlipinski.tx.{PG, PGDoc}
 import net.tlipinski.util.Logging
 import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import sttp.client3.{SttpBackend, UriContext, basicRequest}
@@ -20,42 +23,36 @@ object RunTransfers extends IOApp with Logging {
 
   val padding = "%04d"
 
+  val xa = PG.xa(logging = true)
+
   override def run(args: List[String]): IO[ExitCode] = {
     val users     = args(0).toInt
     val requests  = args(1).toInt
     val maxAmount = args(2).toInt
 
     (for {
-      sttp    <- AsyncHttpClientCatsBackend.resource[IO]()
+      sttp <- AsyncHttpClientCatsBackend.resource[IO]()
     } yield (sttp)).use { case (sttp) =>
       for {
+        _ <- cleanupDb().transact(xa)
+        _ <- initDb(users)
         _ <- Range(0, requests).toList.traverse(sendRequest(sttp, _, users, maxAmount))
       } yield ExitCode.Success
     }
   }
 
-  def cleanupDb(cluster: Cluster): IO[Unit] = {
+  def cleanupDb(): ConnectionIO[Unit] = {
     for {
-      _ <- IO.blocking(cluster.query(s"DELETE FROM ${bucket}._default.outbox"))
-      _ <- IO.blocking(cluster.query(s"DELETE FROM ${bucket}._default.balances"))
-      _ <- IO.blocking(cluster.query(s"DELETE FROM ${bucket}._default.sagas"))
+      _ <- sql"DELETE FROM outbox".update.run
+      _ <- sql"DELETE FROM balances".update.run
+      _ <- sql"DELETE FROM sagas".update.run
     } yield ()
   }
 
-  def initDb(cluster: Cluster, users: Int): IO[Unit] = {
-    Range(0, users).toList
-      .traverse(u =>
-        IO.blocking(
-          cluster
-            .bucket(bucket)
-            .collection("balances")
-            .upsert(
-              s"u${padding.format(u)}",
-              resetBalance("u" + padding.format(u))
-            )
-        )
-      )
-      .void
+  def initDb(users: Int): IO[Unit] = {
+    Range(0, users).toList.traverse { u =>
+      PGDoc.insert("balances", padding.format(u), resetBalance("u" + padding.format(u))).transact(xa)
+    }.void
   }
 
   def sendRequest(sttp: SttpBackend[IO, Any], id: Int, users: Int, maxAmount: Int): IO[Unit] = {
@@ -90,13 +87,11 @@ object RunTransfers extends IOApp with Logging {
       |""".stripMargin
   }
 
-  def resetBalance(userId: String): JsonObject =
-    JsonObject.fromJson(s"""
-         |{
-         |  "userId": "${userId}",
-         |  "balance": 1000,
-         |  "pending": [],
-         |  "processed": []
-         |}
-         |""".stripMargin)
+  def resetBalance(userId: String): Json =
+    Json.obj(
+      "userId"    := s"${userId}",
+      "balance"   := 1000,
+      "pending"   := Json.arr(),
+      "processed" := Json.arr()
+    )
 }

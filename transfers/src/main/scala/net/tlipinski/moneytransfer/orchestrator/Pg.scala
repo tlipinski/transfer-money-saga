@@ -11,7 +11,7 @@ import doobie.util.log.LogEvent
 import io.circe.generic.JsonCodec
 import io.circe.syntax.EncoderOps
 import io.circe.{Codec, Json}
-import net.tlipinski.tx.{Message, OutboxWriter, PG}
+import net.tlipinski.tx.{Message, OutboxWriter, PGDoc}
 
 object Pg extends App {
 
@@ -46,14 +46,14 @@ object Pg extends App {
   implicit def put[A: Codec]: Put[A] = Put[Json].contramap(_.asJson)
 
   val id = "1"
-  val insert = PG.insert("sagas", "aaa", Transfer("cred", "deb", 100))
+//  val insert = PG.insert("sagas", "aaa", Transfer("cred", "deb", 100))
 
-//  val t = for {
-//    z <- PG.modify[Transfer]("sagas", "1") { t =>
-//      val newDoc = t.modify(_.amount)(_ + 100).modify(_.debited).setTo("xxxx")
-//      PG.insert("sagas", "aaa", newDoc).map { _ => newDoc.some }
-//    }
-//  } yield (z)
+  val t = for {
+    z <- PGDoc.modify[Transfer]("sagas", "t0000") { t =>
+           val newDoc = t.modify(_.amount)(_ + 100).modify(_.debited).setTo("xxxx")
+           PGDoc.insert("sagas", "aaa", newDoc).map { _ => newDoc.some }
+         }
+  } yield (z)
 
   val tr = Transfer("c", "d", 100)
 
@@ -61,9 +61,7 @@ object Pg extends App {
 
 //  outbox.save("transfer", "kkk", Message.noReply(tr)).transact(xa).unsafeRunSync()
 
-//    val r = t.transact(xa).unsafeRunSync()
-
-  val r = insert.transact(xa).unsafeRunSync()
+  val r = t.transact(xa).unsafeRunSync()
 
   //  println(r)
 
