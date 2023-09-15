@@ -5,6 +5,8 @@ import doobie.util.transactor.Transactor
 import fs2.kafka.{KafkaProducer, ProducerSettings}
 import net.tlipinski.tx.PG
 
+import scala.concurrent.duration.DurationInt
+
 object OutboxMain extends IOApp {
 
   val infraHost: String   = sys.env("INFRA_HOST")
@@ -13,7 +15,7 @@ object OutboxMain extends IOApp {
 
   val bucket = "money"
 
-  val xa = PG.xa(false)
+  val xa = PG.xa(true)
 
   override def run(args: List[String]): IO[ExitCode] = {
     (for {
@@ -22,20 +24,16 @@ object OutboxMain extends IOApp {
                       .withBootstrapServers(s"$infraHost:9092")
                   )
     } yield (producer)).use { case producer =>
-      //      val collection = cluster.bucket(bucket).collection("outbox")
-      val worker = ???
-      //        new Worker(
-      //          cluster,
-      //          collection,
-      //          producer,
-      //          20,
-      //          500.millis,
-      //          instance,
-      //          totalInstances
-      //        )
+      val worker = new Worker(
+        xa,
+        producer,
+        20,
+        500.millis,
+        instance,
+        totalInstances
+      )
 
-      //      worker.stream.compile.drain.as(ExitCode.Success)
-      ???
+      worker.stream.compile.drain.as(ExitCode.Success)
     }
   }
 
