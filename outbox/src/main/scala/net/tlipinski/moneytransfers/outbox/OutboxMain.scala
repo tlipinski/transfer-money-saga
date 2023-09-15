@@ -13,8 +13,6 @@ object OutboxMain extends IOApp {
   val instance: Int       = sys.env("INSTANCE").toInt - 1
   val totalInstances: Int = sys.env("TOTAL_INSTANCES").toInt
 
-  val bucket = "money"
-
   val xa = PG.xa(true)
 
   override def run(args: List[String]): IO[ExitCode] = {
@@ -23,7 +21,7 @@ object OutboxMain extends IOApp {
                     ProducerSettings[IO, String, String]
                       .withBootstrapServers(s"$infraHost:9092")
                   )
-    } yield (producer)).use { case producer =>
+    } yield producer).use { producer =>
       val worker = new Worker(
         xa,
         producer,

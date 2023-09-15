@@ -52,19 +52,17 @@ class Worker(
                   }
     } yield ()
 
-//  implicit def gj: Get[Json] = Get[Json]
-
   private def queryUnsent: ConnectionIO[List[OutboxMessage]] = {
     for {
-      jsons <- sql"""SELECT id, topic, key, message, timestamp
+      jsons <- sql"""SELECT id, topic, key, message, reply_to, timestamp
                        FROM outbox
                        WHERE timestamp IS NOT NULL
                          AND sent IS NULL
+                         AND (keyHash % ${totalInstances}) = ${instance}
                        ORDER BY timestamp ASC
                        LIMIT ${limit}""".query[OutboxMessage].to[List]
     } yield jsons
   }
-  //                         AND (keyHash % ${totalInstances}) = ${instance}
 
   private def send(messages: List[OutboxMessage]): IO[Unit] = {
     for {
@@ -115,10 +113,9 @@ object Worker {
       topic: String,
       key: String,
       message: String,
-//      replyTo: Option[String],
+      replyTo: Option[String],
       timestamp: Instant
   ) {
-    val kafkaMessage: KafkaMessage = ???
-//    val kafkaMessage: KafkaMessage = KafkaMessage(id, replyTo, message)
+    val kafkaMessage: KafkaMessage = KafkaMessage(id, replyTo, Json.Null)
   }
 }
