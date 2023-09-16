@@ -1,5 +1,6 @@
 package net.tlipinski.moneytransfers.outbox
 
+import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.implicits._
 import doobie.ConnectionIO
@@ -8,19 +9,16 @@ import doobie.util.transactor.Transactor
 import doobie.postgres.implicits._
 import doobie.postgres.circe.json.implicits._
 import doobie._
-import doobie.postgres.circe.Instances
 import fs2.Stream
 import fs2.kafka.{KafkaProducer, ProducerRecord, ProducerRecords}
 import io.circe.Json
 import io.circe.generic.JsonCodec
-import io.circe.parser._
 import io.circe.syntax.EncoderOps
 import net.tlipinski.moneytransfers.outbox.Worker.OutboxMessage
 import net.tlipinski.util.Logging
 
 import java.time.Instant
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
-import scala.jdk.CollectionConverters._
 
 class Worker(
     xa: Transactor[IO],
@@ -43,29 +41,28 @@ class Worker(
     for {
       messages <- queryUnsent.transact(xa)
       _        <- logger.debug(s"${messages.size} outbox messages found")
-      _        <- if (messages.isEmpty) {
-                    // if there were no messages found then it can slow down
-                    IO.sleep(pollInterval)
-                  } else {
-                    send(messages) >>
-                      markAsSent(messages.map(_.id)).transact(xa) >>
-                      logger.info(s"Sent ${messages.size} messages")
-                  }
+      _        <- NonEmptyList
+                    .fromList(messages)
+                    .fold(IO.sleep(pollInterval)) { nonEmptyMessages =>
+                      send(nonEmptyMessages) >>
+                        markAsSent(nonEmptyMessages.map(_.id)).transact(xa) >>
+                        logger.info(s"Sent ${messages.size} messages")
+                    }
     } yield ()
 
   private def queryUnsent: ConnectionIO[List[OutboxMessage]] = {
-    for {
-      jsons <- sql"""SELECT id, topic, key, message, reply_to, timestamp
-                       FROM outbox
-                       WHERE timestamp IS NOT NULL
-                         AND sent IS NULL
-                         AND (keyHash % ${totalInstances}) = ${instance}
-                       ORDER BY timestamp ASC
-                       LIMIT ${limit}""".query[OutboxMessage].to[List]
-    } yield jsons
+    sql"""SELECT id, topic, key, message, reply_to, timestamp
+          FROM outbox
+          WHERE timestamp IS NOT NULL
+            AND sent IS NULL
+            AND (keyHash % ${totalInstances}) = ${instance}
+          ORDER BY timestamp ASC
+          LIMIT ${limit}"""
+      .query[OutboxMessage]
+      .to[List]
   }
 
-  private def send(messages: List[OutboxMessage]): IO[Unit] = {
+  private def send(messages: NonEmptyList[OutboxMessage]): IO[Unit] = {
     for {
       records <- messages.traverse { msg =>
                    logger.debug(s"Preparing to send: $msg") >>
@@ -82,20 +79,8 @@ class Worker(
 
   }
 
-  private def markAsSent(ids: List[String]): ConnectionIO[Unit] = {
-//    for {
-//      _ <- IO.blocking(
-//             cluster.query(
-//               s"""
-//                  |UPDATE outbox
-//                  |USE KEYS $$keys
-//                  |SET _sent = true
-//                  |""".stripMargin,
-//               QueryOptions.queryOptions().parameters(JsonObject.create().put("keys", JsonArray.from(ids.asJava)))
-//             )
-//           )
-//    } yield ()
-    "1".pure[ConnectionIO].void
+  private def markAsSent(ids: NonEmptyList[String]): ConnectionIO[Unit] = {
+    (sql"UPDATE outbox SET sent = true WHERE " ++ Fragments.in(fr"id", ids)).update.run.void
   }
 }
 
