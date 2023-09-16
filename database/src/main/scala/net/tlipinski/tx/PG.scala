@@ -7,9 +7,9 @@ import doobie.{LogHandler, Transactor}
 object PG {
   val printSqlLogHandler: LogHandler[IO] = (logEvent: LogEvent) => IO(println(logEvent))
 
-  def xa(logging: Boolean): Transactor[IO] = Transactor.fromDriverManager[IO](
+  def xa(host: String, logging: Boolean = false): Transactor[IO] = Transactor.fromDriverManager[IO](
     driver = "org.postgresql.Driver",
-    url = "jdbc:postgresql:postgres",
+    url = s"jdbc:postgresql://$host/postgres",
     user = "postgres",
     password = "password",
     logHandler = Option.when(logging)(printSqlLogHandler)

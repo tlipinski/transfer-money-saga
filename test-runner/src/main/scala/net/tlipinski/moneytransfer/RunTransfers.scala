@@ -21,7 +21,7 @@ object RunTransfers extends IOApp with Logging {
 
   val padding = "%04d"
 
-  val xa = PG.xa(logging = true)
+  val xa = PG.xa(infraHost)
 
   override def run(args: List[String]): IO[ExitCode] = {
     val users     = args(0).toInt
@@ -59,7 +59,7 @@ object RunTransfers extends IOApp with Logging {
       amount         <- rand.betweenLong(1, maxAmount)
       List(from, to) <- rand.shuffleList(Range(0, users).toList).map(_.take(2))
       request         = basicRequest
-                          .post(uri"http://localhost:8080/transfers")
+                          .post(uri"http://$infraHost:8080/transfers")
                           .body(requestBody(id, from, to, amount))
       resp           <- Stream
                           .retry(

@@ -1,72 +1,37 @@
 #!/usr/bin/env bash
 
+export PGPASSWORD=password
+
 echo === BALANCES ===
 
+query='psql -q -h localhost -U postgres -d postgres --csv -t -c '
+
 echo -n "Total:            "
-cbq -q -u Administrator -p password -s "$(cat <<CQL
-SELECT SUM(balance) as totalBalance
-FROM money._default.balances
-CQL
-)" | jq '.results[].totalBalance'
+$query "SELECT SUM((content->>'balance')::integer) FROM balances"
 
 echo -n "Pending trans.:   "
-cbq -q -u Administrator -p password -s "$(cat <<CQL
-SELECT SUM(ARRAY_LENGTH(pending)) as totalPending
-FROM money._default.balances
-CQL
-)" | jq '.results[].totalPending'
+$query "SELECT SUM(json_array_length(content->'pending')) FROM balances"
 
 echo -n "Processed trans.: "
-cbq -q -u Administrator -p password -s "$(cat <<CQL
-SELECT SUM(ARRAY_LENGTH(processed)) totalProcessed
-FROM money._default.balances s
-CQL
-)" | jq '.results[].totalProcessed'
+$query "SELECT SUM(json_array_length(content->'processed')) FROM balances"
 
 echo
 echo === OUTBOX ===
 
 echo -n "Sent:     "
-cbq -q -u Administrator -p password -s "$(cat <<CQL
-SELECT COUNT(META().id) cnt
-FROM money._default.outbox
-WHERE _sent = true
-CQL
-)" | jq '.results[].cnt'
+$query "SELECT COUNT(*) FROM outbox WHERE sent = true"
 
 echo -n "Unsent:   "
-cbq -q -u Administrator -p password -s "$(cat <<CQL
-SELECT COUNT(META().id) cnt
-FROM money._default.outbox
-WHERE _sent IS MISSING
-CQL
-)" | jq '.results[].cnt'
-
+$query "SELECT COUNT(*) FROM outbox WHERE sent IS NULL"
 
 echo
 echo === SAGAS ===
 
 echo -n "Completed:    "
-cbq -q -u Administrator -p password -s "$(cat <<CQL
-SELECT COUNT(*) cnt
-FROM money._default.sagas s
-WHERE stage.type="completed"
-CQL
-)" | jq '.results[].cnt'
+$query "SELECT COUNT(*) FROM sagas where content->'stage'->>'type' = 'completed'"
 
 echo -n "Rolled back:  "
-cbq -q -u Administrator -p password -s "$(cat <<CQL
-SELECT COUNT(*) cnt
-FROM money._default.sagas s
-WHERE stage.type="rolled-back"
-CQL
-)" | jq '.results[].cnt'
+$query "SELECT COUNT(*) FROM sagas where content->'stage'->>'type' = 'rolled-back'"
 
 echo -n "In progress:  "
-cbq -q -u Administrator -p password -s "$(cat <<CQL
-SELECT COUNT(*) cnt
-FROM money._default.sagas s
-WHERE stage.type="in-progress"
-CQL
-)" | jq '.results[].cnt'
-
+$query "SELECT COUNT(*) FROM sagas where content->'stage'->>'type' = 'in-progress'"

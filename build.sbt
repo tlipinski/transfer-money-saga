@@ -20,8 +20,6 @@ ThisBuild / assemblyMergeStrategy := {
 }
 
 val fs2Kafka       = "com.github.fd4s"               %% "fs2-kafka"                      % "2.5.0"
-val couchbaseJava  = "com.couchbase.client"           % "java-client"                    % "3.3.3"
-val couchbaseTrans = "com.couchbase.client"           % "couchbase-transactions"         % "1.2.4"
 val quicklens      = "com.softwaremill.quicklens"    %% "quicklens"                      % "1.8.8"
 val sttp           = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % "3.7.6"
 val scalatest      = "org.scalatest"                 %% "scalatest"                      % "3.2.13" % Test

@@ -21,7 +21,7 @@ object BankMain extends IOApp {
 
   val infraHost: String = sys.env.getOrElse("INFRA_HOST", "localhost")
 
-  val xa = PG.xa(true)
+  val xa = PG.xa(infraHost)
 
   override def run(args: List[String]): IO[ExitCode] = {
     (for {
