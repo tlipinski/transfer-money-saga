@@ -5,15 +5,11 @@ import doobie.util.log.LogEvent
 import doobie.{LogHandler, Transactor}
 import fs2.Stream
 import fs2.kafka._
-import net.tlipinski.moneytransfer.orchestrator.application.{
-  CommandsOutbox,
-  HandleMessageUseCase,
-  StartMoneyTransferUseCase
-}
+import net.tlipinski.moneytransfer.orchestrator.application.{CommandsOutbox, HandleMessageUseCase, StartMoneyTransferUseCase}
 import net.tlipinski.moneytransfer.orchestrator.domain.{BankCommand, BankEvent}
 import net.tlipinski.moneytransfer.orchestrator.infra.{MoneyTransferRepo, TransferMoneyRoutes}
 import net.tlipinski.publisher.RecordHandler
-import net.tlipinski.tx.{Message, OutboxWriter}
+import net.tlipinski.tx.{Message, OutboxWriter, PG}
 import net.tlipinski.util.Logging
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.implicits._
@@ -28,15 +24,7 @@ object TransfersMain extends IOApp with Logging {
 
   val infraHost: String = sys.env.getOrElse("INFRA_HOST", "localhost")
 
-  val printSqlLogHandler: LogHandler[IO] = (logEvent: LogEvent) => IO(println(logEvent))
-
-  val xa = Transactor.fromDriverManager[IO](
-    driver = "org.postgresql.Driver",
-    url = "jdbc:postgresql:postgres",
-    user = "postgres",
-    password = "password",
-    logHandler = Some(printSqlLogHandler)
-  )
+  val xa = PG.xa(infraHost)
 
   override def run(args: List[String]): IO[ExitCode] = {
     (for {
