@@ -19,15 +19,15 @@ class OutboxWriter[A: Encoder](table: String) extends Logging {
   def save(topic: String, key: String, message: Message[A]): ConnectionIO[Unit] = {
     for {
       id    <- Sync[ConnectionIO].delay(UUID.randomUUID())
-      outbox = OutboxRow[A](id, topic, key, key.hashCode, message.message)
+      outbox = OutboxRow[A](id, topic, key, key.hashCode, message.replyTo, message.message)
       _     <- (sql"INSERT INTO " ++
                  Fragment.const(table) ++
-                 sql" (id, topic, key, keyhash, message) VALUES ($outbox)").update.run.void
+                 sql" (id, topic, key, keyhash, reply_to, message) VALUES ($outbox)").update.run.void
     } yield ()
   }
 
 }
 
 object OutboxWriter {
-  case class OutboxRow[A](id: UUID, topic: String, key: String, keyHash: Int, message: A)
+  case class OutboxRow[A](id: UUID, topic: String, key: String, keyHash: Int, replyTo: Option[String], message: A)
 }

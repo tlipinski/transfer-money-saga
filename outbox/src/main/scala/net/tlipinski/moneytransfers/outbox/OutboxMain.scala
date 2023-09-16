@@ -13,7 +13,7 @@ object OutboxMain extends IOApp {
   val instance: Int       = sys.env("INSTANCE").toInt - 1
   val totalInstances: Int = sys.env("TOTAL_INSTANCES").toInt
 
-  val xa = PG.xa(true)
+  val xa = PG.xa(false)
 
   override def run(args: List[String]): IO[ExitCode] = {
     (for {

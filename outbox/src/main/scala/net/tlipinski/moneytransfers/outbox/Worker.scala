@@ -40,7 +40,9 @@ class Worker(
   private def loop: IO[Unit] =
     for {
       messages <- queryUnsent.transact(xa)
-      _        <- logger.debug(s"${messages.size} outbox messages found")
+      _        <- if (messages.nonEmpty)
+                    logger.debug(s"${messages.size} outbox messages found")
+                  else IO.unit
       _        <- NonEmptyList
                     .fromList(messages)
                     .fold(IO.sleep(pollInterval)) { nonEmptyMessages =>
