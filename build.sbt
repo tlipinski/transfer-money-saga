@@ -54,7 +54,7 @@ lazy val transfers = project
     Docker / dockerExposedPorts := Seq(8080)
   )
   .enablePlugins(JavaAppPackaging)
-  .dependsOn(outbox, saga, util, `database-pg`, consumer)
+  .dependsOn(outbox, saga, util, database, consumer)
 
 lazy val bank = project
   .in(file("bank"))
@@ -74,7 +74,7 @@ lazy val outbox = project
     Docker / dockerBaseImage := "openjdk:8"
   )
   .enablePlugins(JavaAppPackaging)
-  .dependsOn(`database-pg`)
+  .dependsOn(database)
 
 lazy val necromant = project
   .in(file("necromant"))
@@ -86,18 +86,18 @@ lazy val necromant = project
   .enablePlugins(JavaAppPackaging)
   .dependsOn(consumer)
 
-lazy val database = project
+lazy val `database-cb` = project
   .in(file("database"))
   .settings(
-    name := "database",
+    name := "database-cb",
     libraryDependencies ++= Seq(couchbaseJava, couchbaseTrans)
   )
   .dependsOn(util)
 
-lazy val `database-pg` = project
+lazy val database = project
   .in(file("database-pg"))
   .settings(
-    name := "database-pg",
+    name := "database",
     libraryDependencies ++= doobie
   )
   .dependsOn(util)
@@ -125,7 +125,7 @@ lazy val `test-runner` = project
     libraryDependencies ++= commonDeps ++ http4s :+ sttp,
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
   )
-  .dependsOn(outbox, saga, util, `database-pg`, consumer)
+  .dependsOn(outbox, saga, util, database, consumer)
 
 lazy val util = project
   .in(file("util"))
