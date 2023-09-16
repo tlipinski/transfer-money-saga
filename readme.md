@@ -23,20 +23,12 @@ it got a bit more complex it somehow turned into Process Manager. Name Saga is s
 $ docker-compose -p tms-infra -f docker-compose-infra.yml up -d
 ```
 
-2. Wait a bit for Couchbase to start and run: 
-```shell
-$ ./couchbase-init.sh
-```
-It creates all necessary buckets, collections and indexes.
-`docker-compose-infra.yml` defines volume for Couchbase container
-so this step is required to perform only once unless you remove the volume.
-
-3. Open another terminal and enter sbt shell with `sbt` command and build projects with:
+2. Open another terminal and enter sbt shell with `sbt` command and build projects with:
 ```
 sbt> docker:stage
 ```
 
-5. Go back to previous terminal and start services
+3. Go back to previous terminal and start services
 ```shell
 $ docker-compose -p tms -f docker-compose.yml up
 ```
@@ -189,7 +181,7 @@ Common message processing with fs2-kafka.
 
 ### database (lib)
 
-All documents are stored in Couchbase. This library hides all details related to this specific database.
+All documents are stored in Postgres. This library hides all details related to this specific database.
 Probably it's not a good idea to make database client wrappers like this but it just makes this example
 code a bit cleaner
 
