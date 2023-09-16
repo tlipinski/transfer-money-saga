@@ -86,16 +86,8 @@ lazy val necromant = project
   .enablePlugins(JavaAppPackaging)
   .dependsOn(consumer)
 
-lazy val `database-cb` = project
-  .in(file("database"))
-  .settings(
-    name := "database-cb",
-    libraryDependencies ++= Seq(couchbaseJava, couchbaseTrans)
-  )
-  .dependsOn(util)
-
 lazy val database = project
-  .in(file("database-pg"))
+  .in(file("database"))
   .settings(
     name := "database",
     libraryDependencies ++= doobie
