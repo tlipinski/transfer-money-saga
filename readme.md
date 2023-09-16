@@ -28,8 +28,9 @@ $ docker-compose -p tms-infra -f docker-compose-infra.yml up -d
 sbt> docker:stage
 ```
 
-3. Go back to previous terminal and start services
+3. Go back to previous terminal, build images and start services
 ```shell
+$ docker-compose -p tms -f docker-compose.yml build
 $ docker-compose -p tms -f docker-compose.yml up
 ```
 
