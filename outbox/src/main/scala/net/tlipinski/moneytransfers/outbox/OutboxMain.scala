@@ -1,18 +1,18 @@
 package net.tlipinski.moneytransfers.outbox
 
-import cats.effect.{ExitCode, IO, IOApp, Resource}
-import com.couchbase.client.java.Cluster
+import cats.effect.{ExitCode, IO, IOApp}
 import fs2.kafka.{KafkaProducer, ProducerSettings}
+import net.tlipinski.tx.PG
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.DurationInt
 
 object OutboxMain extends IOApp {
 
-  val infraHost: String   = sys.env("INFRA_HOST")
+  val infraHost: String   = sys.env.getOrElse("INFRA_HOST", "localhost")
   val instance: Int       = sys.env("INSTANCE").toInt - 1
   val totalInstances: Int = sys.env("TOTAL_INSTANCES").toInt
 
-  val bucket = "money"
+  val xa = PG.xa(infraHost)
 
   override def run(args: List[String]): IO[ExitCode] = {
     (for {
@@ -20,21 +20,15 @@ object OutboxMain extends IOApp {
                     ProducerSettings[IO, String, String]
                       .withBootstrapServers(s"$infraHost:9092")
                   )
-      cluster  <- Resource.make(
-                    IO(Cluster.connect(infraHost, "Administrator", "password"))
-                  )(r => IO(r.disconnect()))
-    } yield (producer, cluster)).use { case (producer, cluster) =>
-      val collection = cluster.bucket(bucket).collection("outbox")
-      val worker     =
-        new Worker(
-          cluster,
-          collection,
-          producer,
-          20,
-          500.millis,
-          instance,
-          totalInstances
-        )
+    } yield producer).use { producer =>
+      val worker = new Worker(
+        xa,
+        producer,
+        20,
+        500.millis,
+        instance,
+        totalInstances
+      )
 
       worker.stream.compile.drain.as(ExitCode.Success)
     }

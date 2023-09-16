@@ -9,9 +9,9 @@ object Balances {
 
   sealed trait ChangeBalanceFailure
   object ChangeBalanceFailure {
-    case object ZeroTransfer                                      extends ChangeBalanceFailure
-    case class TransferExists(id: TransferId)                     extends ChangeBalanceFailure
-    case class TransferProcessed(id: TransferId)                  extends ChangeBalanceFailure
+    case object ZeroTransfer                                     extends ChangeBalanceFailure
+    case class TransferExists(id: TransferId)                    extends ChangeBalanceFailure
+    case class TransferProcessed(id: TransferId)                 extends ChangeBalanceFailure
     case class BalanceTooLow(balance: Balance, event: BankEvent) extends ChangeBalanceFailure
   }
 

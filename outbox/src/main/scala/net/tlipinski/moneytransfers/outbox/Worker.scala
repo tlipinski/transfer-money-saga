@@ -1,26 +1,27 @@
 package net.tlipinski.moneytransfers.outbox
 
+import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.implicits._
-import com.couchbase.client.java.json.{JsonArray, JsonObject}
-import com.couchbase.client.java.{Cluster, Collection}
-import com.couchbase.client.java.query.QueryOptions
+import doobie.ConnectionIO
+import doobie.implicits._
+import doobie.util.transactor.Transactor
+import doobie.postgres.implicits._
+import doobie.postgres.circe.json.implicits._
+import doobie._
 import fs2.Stream
 import fs2.kafka.{KafkaProducer, ProducerRecord, ProducerRecords}
 import io.circe.Json
 import io.circe.generic.JsonCodec
-import io.circe.parser._
 import io.circe.syntax.EncoderOps
 import net.tlipinski.moneytransfers.outbox.Worker.OutboxMessage
 import net.tlipinski.util.Logging
 
 import java.time.Instant
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
-import scala.jdk.CollectionConverters._
 
 class Worker(
-    cluster: Cluster,
-    collection: Collection,
+    xa: Transactor[IO],
     producer: KafkaProducer[IO, String, String],
     limit: Int,
     pollInterval: FiniteDuration,
@@ -36,41 +37,32 @@ class Worker(
 
   private def loop: IO[Unit] =
     for {
-      messages <- queryUnsent
-      _        <- logger.debug(s"${messages.size} outbox messages found")
-      _        <- if (messages.isEmpty) {
-                    // if there were no messages found then it can slow down
-                    IO.sleep(pollInterval)
-                  } else {
-                    send(messages) >>
-                      markAsSent(messages.map(_.id)) >>
-                      logger.info(s"Sent ${messages.size} messages")
-                  }
+      messages <- queryUnsent.transact(xa)
+      _        <- if (messages.nonEmpty)
+                    logger.debug(s"${messages.size} outbox messages found")
+                  else IO.unit
+      _        <- NonEmptyList
+                    .fromList(messages)
+                    .fold(IO.sleep(pollInterval)) { nonEmptyMessages =>
+                      send(nonEmptyMessages) >>
+                        markAsSent(nonEmptyMessages.map(_.id)).transact(xa) >>
+                        logger.info(s"Sent ${messages.size} messages")
+                    }
     } yield ()
 
-  private def queryUnsent: IO[List[OutboxMessage]] = {
-    for {
-      jsons   <- IO.blocking {
-                   cluster
-                     .query(
-                       s"""
-                         |SELECT META().id, *
-                         |FROM ${collection.bucketName}._default.${collection.name} doc
-                         |WHERE timestamp IS NOT NULL
-                         |  AND _sent IS MISSING
-                         |  AND keyHash % ${totalInstances} == ${instance}
-                         |ORDER BY timestamp ASC
-                         |LIMIT ${limit}""".stripMargin
-                     )
-                     .rowsAsObject()
-                     .asScala
-                     .toList
-                 }
-      decoded <- jsons.traverse { jsonObj => IO.fromEither(decode[OutboxMessage](jsonObj.get("doc").toString)) }
-    } yield decoded
+  private def queryUnsent: ConnectionIO[List[OutboxMessage]] = {
+    sql"""SELECT id, topic, key, message, reply_to, timestamp
+          FROM outbox
+          WHERE timestamp IS NOT NULL
+            AND sent IS NULL
+            AND (keyHash % ${totalInstances}) = ${instance}
+          ORDER BY timestamp ASC
+          LIMIT ${limit}"""
+      .query[OutboxMessage]
+      .to[List]
   }
 
-  private def send(messages: List[OutboxMessage]): IO[Unit] = {
+  private def send(messages: NonEmptyList[OutboxMessage]): IO[Unit] = {
     for {
       records <- messages.traverse { msg =>
                    logger.debug(s"Preparing to send: $msg") >>
@@ -87,20 +79,8 @@ class Worker(
 
   }
 
-  private def markAsSent(ids: List[String]): IO[Unit] = {
-    for {
-      _ <- IO.blocking(
-             cluster.query(
-               s"""
-                  |UPDATE `${collection.bucketName}`._default.`${collection.name}`
-                  |USE KEYS $$keys
-                  |SET _sent = true
-                  |""".stripMargin,
-               QueryOptions.queryOptions().parameters(JsonObject.create().put("keys", JsonArray.from(ids.asJava)))
-             )
-           )
-    } yield ()
-
+  private def markAsSent(ids: NonEmptyList[String]): ConnectionIO[Unit] = {
+    (sql"UPDATE outbox SET sent = true WHERE " ++ Fragments.in(fr"id", ids)).update.run.void
   }
 }
 
