@@ -6,8 +6,9 @@ import doobie.ConnectionIO
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import doobie.postgres.implicits._
-import doobie.postgres.circe.json._
+import doobie.postgres.circe.json.implicits._
 import doobie._
+import doobie.postgres.circe.Instances
 import fs2.Stream
 import fs2.kafka.{KafkaProducer, ProducerRecord, ProducerRecords}
 import io.circe.Json
@@ -112,10 +113,10 @@ object Worker {
       id: String,
       topic: String,
       key: String,
-      message: String,
+      message: Json,
       replyTo: Option[String],
       timestamp: Instant
   ) {
-    val kafkaMessage: KafkaMessage = KafkaMessage(id, replyTo, Json.Null)
+    val kafkaMessage: KafkaMessage = KafkaMessage(id, replyTo, message)
   }
 }

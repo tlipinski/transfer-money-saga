@@ -14,7 +14,7 @@ import net.tlipinski.util.Logging
 import java.util.UUID
 
 class OutboxWriter[A: Encoder](table: String) extends Logging {
-  implicit val put: Put[A] = Put[Json].contramap(_.asJson)
+  implicit val put: Put[A] = Put[Json].tcontramap(_.asJson)
 
   def save(topic: String, key: String, message: Message[A]): ConnectionIO[Unit] = {
     for {
