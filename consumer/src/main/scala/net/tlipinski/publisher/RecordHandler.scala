@@ -25,7 +25,7 @@ class RecordHandler[A: Decoder](
           .warn(e)(
             s"Unhandled message type ${committable.record.value}"
           ) >> IO.raiseError[CommittableOffset[IO]](e)
-      case ex =>
+      case ex                                   =>
         logger.warn(ex)(
           s"Error while handling '${committable.record.value}', not committing"
         ) >> IO.raiseError[CommittableOffset[IO]](ex)

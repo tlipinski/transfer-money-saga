@@ -17,13 +17,13 @@ class TransferMoneyRoutes(
     jsonOf[IO, TransferMoneyRequest]
 
   val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case req @ POST -> Root / "transfers" =>
-        for {
-          request  <- req.as[TransferMoneyRequest]
-          _        <- startMoneyTransferUseCase.start(
-                        MoneyTransfer(TransferId(request.id), request.from, request.to, request.amount)
-                      )
-          response <- Ok(s"Transfer in progress: ${request.id}")
-        } yield response
+    for {
+      request  <- req.as[TransferMoneyRequest]
+      _        <- startMoneyTransferUseCase.start(
+                    MoneyTransfer(TransferId(request.id), request.from, request.to, request.amount)
+                  )
+      response <- Ok(s"Transfer in progress: ${request.id}")
+    } yield response
   }
 }
 

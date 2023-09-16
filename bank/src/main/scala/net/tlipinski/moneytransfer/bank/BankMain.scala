@@ -3,7 +3,12 @@ package net.tlipinski.moneytransfer.bank
 import cats.effect.{ExitCode, IO, IOApp}
 import fs2.Stream
 import fs2.kafka._
-import net.tlipinski.moneytransfer.bank.application.{ApproveBalanceUseCase, ChangeBalanceUseCase, CommandHandler, RejectBalanceUseCase}
+import net.tlipinski.moneytransfer.bank.application.{
+  ApproveBalanceUseCase,
+  ChangeBalanceUseCase,
+  CommandHandler,
+  RejectBalanceUseCase
+}
 import net.tlipinski.moneytransfer.bank.domain.{BankCommand, BankEvent}
 import net.tlipinski.moneytransfer.bank.infra.BalanceRepo
 import net.tlipinski.moneytransfer.bank.infra.publisher.{DeadLetterPublisher, RetryUntilDead}

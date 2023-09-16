@@ -15,4 +15,3 @@ object Message {
     Message(replyTo.some, message)
   }
 }
-
