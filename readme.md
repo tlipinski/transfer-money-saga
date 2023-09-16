@@ -18,7 +18,7 @@ it got a bit more complex it somehow turned into Process Manager. Name Saga is s
 
 ## Running
 
-1. Start up Couchbase and Kafka:
+1. Start up Postgres and Kafka:
 ```shell
 $ docker-compose -p tms-infra -f docker-compose-infra.yml up -d
 ```
@@ -97,7 +97,7 @@ To prove delivery guarantees you can try messing around with containers with com
 $ pumba restart -t 30s "re2:tms-.*"
 ```
 
-It will restart all containers (including infra - Couchbase, Kafka and Zookeeper!) one after another
+It will restart all containers (including infra - Postgres, Kafka and Zookeeper!) one after another
 and the end result will be that all transfers will be processed and total balance for all user balances
 will be consistent
 

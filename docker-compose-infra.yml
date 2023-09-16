@@ -50,7 +50,6 @@ services:
       - kafka-data:/var/lib/kafka/data
 
 volumes:
-  couchbase-data:
   kafka-data:
   zk-data:
   zk-log:
