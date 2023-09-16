@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 
 object NecromantMain extends IOApp {
 
-  val infraHost: String = sys.env("INFRA_HOST")
+  val infraHost: String = sys.env.getOrElse("INFRA_HOST", "localhost")
 
   override def run(args: List[String]): IO[ExitCode] = {
     (for {

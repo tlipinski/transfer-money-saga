@@ -1,7 +1,6 @@
 package net.tlipinski.moneytransfer.bank.infra
 
 import cats.MonadThrow
-import cats.effect.IO
 import cats.effect.std.Random
 import doobie.ConnectionIO
 import net.tlipinski.moneytransfer.bank.domain.Balance

@@ -19,8 +19,6 @@ object RunTransfers extends IOApp with Logging {
 
   val infraHost: String = sys.env.getOrElse("INFRA_HOST", "localhost")
 
-  val bucket = "money"
-
   val padding = "%04d"
 
   val xa = PG.xa(logging = true)
@@ -51,7 +49,7 @@ object RunTransfers extends IOApp with Logging {
 
   def initDb(users: Int): IO[Unit] = {
     Range(0, users).toList.traverse { u =>
-      PGDoc.insert("balances", padding.format(u), resetBalance("u" + padding.format(u))).transact(xa)
+      PGDoc.insert("balances", "u" + padding.format(u), resetBalance("u" + padding.format(u))).transact(xa)
     }.void
   }
 

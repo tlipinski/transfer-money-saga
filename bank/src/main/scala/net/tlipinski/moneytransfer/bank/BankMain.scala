@@ -14,7 +14,7 @@ import scala.concurrent.duration.DurationInt
 
 object BankMain extends IOApp {
 
-  val infraHost: String = sys.env("INFRA_HOST")
+  val infraHost: String = sys.env.getOrElse("INFRA_HOST", "localhost")
 
   val xa = PG.xa(true)
 

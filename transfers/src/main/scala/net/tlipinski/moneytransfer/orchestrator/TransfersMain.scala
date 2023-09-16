@@ -24,11 +24,9 @@ import scala.concurrent.duration._
 
 object TransfersMain extends IOApp with Logging {
 
-  val bucket = "money"
-
   val replyTopic = "transfers-reply"
 
-  val infraHost: String = sys.env("INFRA_HOST")
+  val infraHost: String = sys.env.getOrElse("INFRA_HOST", "localhost")
 
   val printSqlLogHandler: LogHandler[IO] = (logEvent: LogEvent) => IO(println(logEvent))
 

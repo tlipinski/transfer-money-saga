@@ -29,11 +29,9 @@ class Worker(
     totalInstances: Int
 ) extends Logging {
 
-//  implicit lazy val getJson: Get[Json] = Get[Json].map(identity)
-
   def stream: Stream[IO, Unit] = {
     Stream
-      .retry(loop, 0.seconds, _ => 1000.milliseconds, 10)
+      .retry(loop, 0.seconds, _ => 100.milliseconds, 10)
       .repeat
   }
 
