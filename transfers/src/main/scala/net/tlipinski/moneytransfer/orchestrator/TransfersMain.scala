@@ -51,7 +51,7 @@ object TransfersMain extends IOApp with Logging {
       val transferMoneyRoutes =
         new TransferMoneyRoutes(statMoneyTransferUseCase)
       val httpApp             = Router("/" -> transferMoneyRoutes.routes).orNotFound
-      val serverStream        = BlazeServerBuilder[IO](ExecutionContext.global)
+      val serverStream        = BlazeServerBuilder[IO]
         .bindHttp(8080, "0.0.0.0")
         .withHttpApp(httpApp)
         .serve
