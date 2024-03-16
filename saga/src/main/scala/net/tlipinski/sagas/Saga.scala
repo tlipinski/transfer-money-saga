@@ -5,7 +5,6 @@ import com.softwaremill.quicklens.*
 import net.tlipinski.sagas.Saga.ProgressFailed.{AlreadyCompleted, UnexpectedMessage}
 import net.tlipinski.sagas.Saga.StageType.{Completed, InProgress, RolledBack}
 import net.tlipinski.sagas.Saga._
-import net.tlipinski.util.CodecConfiguration
 
 case class Saga[D, E, C](
     definition: SagaDefinition[D, E, C],

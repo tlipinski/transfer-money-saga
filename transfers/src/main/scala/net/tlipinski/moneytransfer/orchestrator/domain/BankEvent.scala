@@ -1,16 +1,13 @@
 package net.tlipinski.moneytransfer.orchestrator.domain
 
-import net.tlipinski.util.CodecConfiguration
-
-sealed abstract class BankEvent {
-  val userId: String
-  val transferId: TransferId
-}
-
-object BankEvent extends CodecConfiguration {
-
-  case class BalanceChanged(userId: String, transferId: TransferId)    extends BankEvent
-  case class BalanceNotChanged(userId: String, transferId: TransferId) extends BankEvent
-  case class BalanceApproved(userId: String, transferId: TransferId)   extends BankEvent
-
+enum BankEvent(
+    val userId: String,
+    val transferId: TransferId
+) {
+  case BalanceChanged(override val userId: String, override val transferId: TransferId)
+      extends BankEvent(userId, transferId)
+  case BalanceNotChanged(override val userId: String, override val transferId: TransferId)
+      extends BankEvent(userId, transferId)
+  case BalanceApproved(override val userId: String, override val transferId: TransferId)
+      extends BankEvent(userId, transferId)
 }
