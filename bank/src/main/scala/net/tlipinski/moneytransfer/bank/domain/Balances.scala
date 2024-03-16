@@ -5,24 +5,21 @@ import io.circe.Codec
 object Balances {
   case class TransferAdded(balance: Balance, event: BankEvent)
 
-  sealed trait ChangeBalanceFailure
-  object ChangeBalanceFailure {
-    case object ZeroTransfer                                     extends ChangeBalanceFailure
-    case class TransferExists(id: TransferId)                    extends ChangeBalanceFailure
-    case class TransferProcessed(id: TransferId)                 extends ChangeBalanceFailure
-    case class BalanceTooLow(balance: Balance, event: BankEvent) extends ChangeBalanceFailure
+  enum ChangeBalanceFailure {
+    case ZeroTransfer
+    case TransferExists(id: TransferId)
+    case TransferProcessed(id: TransferId)
+    case BalanceTooLow(balance: Balance, event: BankEvent)
   }
 
-  sealed trait ApproveBalanceFailure
-  object ApproveBalanceFailure {
-    case class InvalidTransferToApprove(id: TransferId) extends ApproveBalanceFailure
-    case class AlreadyApproved(id: TransferId)          extends ApproveBalanceFailure
+  enum ApproveBalanceFailure {
+    case InvalidTransferToApprove(id: TransferId)
+    case AlreadyApproved(id: TransferId)
   }
 
-  sealed trait RejectBalanceFailure
-  object RejectBalanceFailure {
-    case class InvalidTransferToReject(id: TransferId) extends RejectBalanceFailure
-    case class TransferApproved(id: TransferId)        extends RejectBalanceFailure
+  enum RejectBalanceFailure {
+    case InvalidTransferToReject(id: TransferId)
+    case TransferApproved(id: TransferId)
   }
 
   case class Transfer(id: TransferId, amount: Int)

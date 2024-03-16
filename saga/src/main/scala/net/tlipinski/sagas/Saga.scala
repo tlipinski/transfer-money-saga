@@ -17,7 +17,7 @@ case class Saga[D, E, C](
       val current = currentStep(stepId)
       if (current.handleResponse.isDefinedAt(event, stage.data)) {
         current.handleResponse(event, stage.data) match {
-          case SagaForward =>
+          case Progress.SagaForward =>
             nextStep(current.id).fold(
               StageChanged(List.empty, this.modify(_.stage.stage).setTo(Completed)).asRight[ProgressFailed]
             ) { next =>
@@ -25,7 +25,7 @@ case class Saga[D, E, C](
                 .asRight[ProgressFailed]
             }
 
-          case SagaRollback =>
+          case Progress.SagaRollback =>
             val completedSteps = definition.steps.toList.takeWhile(_.id != current.id)
             StageChanged(
               completedSteps.flatMap(_.compensation(stage.data)),
@@ -56,11 +56,10 @@ object Saga {
 
   case class Stage[D](data: D, stage: StageType)
 
-  sealed trait StageType
-  object StageType extends CodecConfiguration {
-    case class InProgress(stepId: String) extends StageType
-    case object RolledBack                extends StageType
-    case object Completed                 extends StageType
+  enum StageType {
+    case InProgress(stepId: String)
+    case RolledBack
+    case Completed
   }
 
   case class Step[D, E, C](
@@ -70,14 +69,12 @@ object Saga {
       handleResponse: PartialFunction[(E, D), Progress]
   )
 
-  sealed trait Progress
-  case object SagaForward  extends Progress
-  case object SagaRollback extends Progress
+  enum Progress {
+    case SagaForward, SagaRollback
+  }
 
-  sealed trait ProgressFailed
-  object ProgressFailed {
-    case object AlreadyCompleted  extends ProgressFailed
-    case object UnexpectedMessage extends ProgressFailed
+  enum ProgressFailed {
+    case AlreadyCompleted, UnexpectedMessage
   }
 
 }

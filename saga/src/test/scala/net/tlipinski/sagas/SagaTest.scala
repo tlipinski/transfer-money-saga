@@ -3,7 +3,8 @@ package net.tlipinski.sagas
 import cats.implicits.catsSyntaxOptionId
 import net.tlipinski.sagas.Saga.ProgressFailed.{AlreadyCompleted, UnexpectedMessage}
 import net.tlipinski.sagas.Saga.StageType.{Completed, InProgress, RolledBack}
-import net.tlipinski.sagas.Saga.{SagaForward, SagaRollback, Stage, Step}
+import net.tlipinski.sagas.Saga.{Stage, Step}
+import net.tlipinski.sagas.Saga.Progress.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
