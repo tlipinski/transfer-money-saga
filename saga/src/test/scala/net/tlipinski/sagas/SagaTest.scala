@@ -34,11 +34,11 @@ class SagaTest extends AnyFlatSpec with Matchers {
     s1.commands shouldBe List(C1)
     s1.updated.stage shouldBe Stage("initial-data", InProgress("step-1"))
 
-    val Right(s2) = s1.updated.onEvent(E1)
+    val Right(s2) = s1.updated.onEvent(E1): @unchecked
     s2.commands shouldBe List(C2)
     s2.updated.stage shouldBe Stage("initial-data", InProgress("step-2"))
 
-    val Right(s3) = s2.updated.onEvent(E2)
+    val Right(s3) = s2.updated.onEvent(E2): @unchecked
     s3.commands shouldBe List.empty
     s3.updated.stage shouldBe Stage("initial-data", Completed)
   }
@@ -55,15 +55,15 @@ class SagaTest extends AnyFlatSpec with Matchers {
     s1.commands shouldBe List(C1)
     s1.updated.stage shouldBe Stage("initial-data", InProgress("step-1"))
 
-    val Right(s2) = s1.updated.onEvent(E1)
+    val Right(s2) = s1.updated.onEvent(E1): @unchecked
     s2.commands shouldBe List(C2)
     s2.updated.stage shouldBe Stage("initial-data", InProgress("step-2"))
 
-    val Right(s3) = s2.updated.onEvent(E2)
+    val Right(s3) = s2.updated.onEvent(E2): @unchecked
     s3.commands shouldBe List(C3)
     s3.updated.stage shouldBe Stage("initial-data", InProgress("step-3"))
 
-    val Right(s4) = s3.updated.onEvent(E3)
+    val Right(s4) = s3.updated.onEvent(E3): @unchecked
     s4.commands shouldBe List(CP1, CP2)
     s4.updated.stage shouldBe Stage("initial-data", RolledBack)
   }
@@ -79,7 +79,7 @@ class SagaTest extends AnyFlatSpec with Matchers {
     s1.commands shouldBe List(C1)
     s1.updated.stage shouldBe Stage("initial-data", InProgress("step-1"))
 
-    val Left(failed) = s1.updated.onEvent(E3)
+    val Left(failed) = s1.updated.onEvent(E3): @unchecked
     failed shouldBe UnexpectedMessage
   }
 
@@ -94,15 +94,15 @@ class SagaTest extends AnyFlatSpec with Matchers {
     s1.commands shouldBe List(C1)
     s1.updated.stage shouldBe Stage("initial-data", InProgress("step-1"))
 
-    val Right(s2) = s1.updated.onEvent(E1)
+    val Right(s2) = s1.updated.onEvent(E1): @unchecked
     s2.commands shouldBe List(C2)
     s2.updated.stage shouldBe Stage("initial-data", InProgress("step-2"))
 
-    val Right(s3) = s2.updated.onEvent(E2)
+    val Right(s3) = s2.updated.onEvent(E2): @unchecked
     s3.commands shouldBe List.empty
     s3.updated.stage shouldBe Stage("initial-data", Completed)
 
-    val Left(s4) = s3.updated.onEvent(E2)
+    val Left(s4) = s3.updated.onEvent(E2): @unchecked
     s4 shouldBe AlreadyCompleted
   }
 }

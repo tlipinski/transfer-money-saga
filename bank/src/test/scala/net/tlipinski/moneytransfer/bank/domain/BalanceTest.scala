@@ -23,7 +23,7 @@ class BalanceTest extends AnyFlatSpec with Matchers {
 
   it should "add pending transfer to balance when amount is positive" in {
     val Right(TransferAdded(newBalance, event)) =
-      Balance.init(userId, 1000).changeBalance(TransferId("a"), 500)
+      Balance.init(userId, 1000).changeBalance(TransferId("a"), 500): @unchecked
 
     newBalance.balance shouldBe 1000
     newBalance.pending shouldBe List(Transfer(TransferId("a"), 500))
@@ -33,7 +33,7 @@ class BalanceTest extends AnyFlatSpec with Matchers {
 
   it should "add pending transfer to balance when amount is negative but balance is high enough" in {
     val Right(TransferAdded(newBalance, event)) =
-      Balance.init(userId, 1000).changeBalance(TransferId("a"), -100)
+      Balance.init(userId, 1000).changeBalance(TransferId("a"), -100): @unchecked
 
     newBalance.balance shouldBe 1000
     newBalance.pending shouldBe List(Transfer(TransferId("a"), -100))
@@ -43,7 +43,7 @@ class BalanceTest extends AnyFlatSpec with Matchers {
 
   it should "not add transfer if balance is too low" in {
     val Left(BalanceTooLow(newBalance, event)) =
-      Balance.init(userId, 1000).changeBalance(TransferId("a"), -2000)
+      Balance.init(userId, 1000).changeBalance(TransferId("a"), -2000): @unchecked
 
     newBalance.balance shouldBe 1000
     newBalance.pending should be(empty)
@@ -58,7 +58,7 @@ class BalanceTest extends AnyFlatSpec with Matchers {
         1000,
         List(Transfer(TransferId("a"), -800)),
         List.empty
-      ).changeBalance(TransferId("b"), -800)
+      ).changeBalance(TransferId("b"), -800): @unchecked
     newBalance.balance shouldBe 1000
     newBalance.pending shouldBe List(Transfer(TransferId("a"), -800))
     newBalance.processed shouldBe List(TransferId("b"))
@@ -71,7 +71,7 @@ class BalanceTest extends AnyFlatSpec with Matchers {
       1000,
       List(Transfer(TransferId("x"), 1000), Transfer(TransferId("y"), -600)),
       List.empty
-    ).changeBalance(TransferId("a"), -500)
+    ).changeBalance(TransferId("a"), -500): @unchecked
 
     newBalance.balance shouldBe 1000
     newBalance.pending shouldBe List(
@@ -165,7 +165,7 @@ class BalanceTest extends AnyFlatSpec with Matchers {
         1000,
         List(Transfer(TransferId("x"), 1000)),
         List.empty
-      ).changeBalance(TransferId("x"), 1000)
+      ).changeBalance(TransferId("x"), 1000): @unchecked
     tid shouldBe TransferId("x")
   }
 
@@ -176,7 +176,7 @@ class BalanceTest extends AnyFlatSpec with Matchers {
         1000,
         List(Transfer(TransferId("x"), 1000)),
         List(TransferId("y"))
-      ).changeBalance(TransferId("y"), 1000)
+      ).changeBalance(TransferId("y"), 1000): @unchecked
     tid shouldBe TransferId("y")
   }
 }
