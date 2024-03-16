@@ -1,7 +1,14 @@
 package net.tlipinski.moneytransfer.bank.domain
 
-import net.tlipinski.moneytransfer.bank.domain.Balances.ApproveBalanceFailure.{AlreadyApproved, InvalidTransferToApprove}
-import net.tlipinski.moneytransfer.bank.domain.Balances.ChangeBalanceFailure.{BalanceTooLow, TransferExists, TransferProcessed}
+import net.tlipinski.moneytransfer.bank.domain.Balances.ApproveBalanceFailure.{
+  AlreadyApproved,
+  InvalidTransferToApprove
+}
+import net.tlipinski.moneytransfer.bank.domain.Balances.ChangeBalanceFailure.{
+  BalanceTooLow,
+  TransferExists,
+  TransferProcessed
+}
 import net.tlipinski.moneytransfer.bank.domain.Balances.RejectBalanceFailure.{InvalidTransferToReject, TransferApproved}
 import net.tlipinski.moneytransfer.bank.domain.Balances.{Transfer, TransferAdded, TransferId}
 import net.tlipinski.moneytransfer.bank.domain.BankEvent.{BalanceChanged, BalanceNotChanged}
@@ -10,6 +17,7 @@ import org.scalatest.matchers.should.Matchers
 
 import java.util.UUID
 
+@unchecked
 class BalanceTest extends AnyFlatSpec with Matchers {
   val userId = UUID.randomUUID().toString
 
@@ -106,7 +114,7 @@ class BalanceTest extends AnyFlatSpec with Matchers {
       userId = userId,
       balance = 1000,
       pending = List.empty,
-      processed = List(TransferId("x")),
+      processed = List(TransferId("x"))
     ).approve(TransferId("x")) shouldBe Left(
       AlreadyApproved(TransferId("x"))
     )
@@ -144,7 +152,7 @@ class BalanceTest extends AnyFlatSpec with Matchers {
       userId = userId,
       balance = 1000,
       pending = List.empty,
-      processed = List(TransferId("x")),
+      processed = List(TransferId("x"))
     ).reject(TransferId("x")) shouldBe Left(
       TransferApproved(TransferId("x"))
     )

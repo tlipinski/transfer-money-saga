@@ -5,7 +5,11 @@ import doobie.util.log.LogEvent
 import doobie.{LogHandler, Transactor}
 import fs2.Stream
 import fs2.kafka._
-import net.tlipinski.moneytransfer.orchestrator.application.{CommandsOutbox, HandleMessageUseCase, StartMoneyTransferUseCase}
+import net.tlipinski.moneytransfer.orchestrator.application.{
+  CommandsOutbox,
+  HandleMessageUseCase,
+  StartMoneyTransferUseCase
+}
 import net.tlipinski.moneytransfer.orchestrator.domain.{BankCommand, BankEvent}
 import net.tlipinski.moneytransfer.orchestrator.infra.{MoneyTransferRepo, TransferMoneyRoutes}
 import net.tlipinski.publisher.RecordHandler
