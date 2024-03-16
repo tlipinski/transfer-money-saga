@@ -10,19 +10,17 @@ import org.scalatest.matchers.should.Matchers
 
 class SagaTest extends AnyFlatSpec with Matchers {
 
-  sealed trait Command
-  case object C1 extends Command
-  case object C2 extends Command
-  case object C3 extends Command
+  enum Command {
+    case C1, C2, C3
+    case CP1, CP2, CP3
+  }
 
-  case object CP1 extends Command
-  case object CP2 extends Command
-  case object CP3 extends Command
+  enum Event {
+    case E1, E2, E3
+  }
 
-  sealed trait Event
-  case object E1 extends Event
-  case object E2 extends Event
-  case object E3 extends Event
+  import Command.*
+  import Event.*
 
   it should "run until completed" in {
     val definition: SagaDefinition[String, Event, Command] =
