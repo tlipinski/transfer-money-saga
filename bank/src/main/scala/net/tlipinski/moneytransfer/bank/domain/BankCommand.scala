@@ -1,9 +1,7 @@
 package net.tlipinski.moneytransfer.bank.domain
 
-import io.circe.generic.extras._
 import net.tlipinski.util.CodecConfiguration
 
-@ConfiguredJsonCodec
 sealed trait BankCommand
 
 object BankCommand extends CodecConfiguration {

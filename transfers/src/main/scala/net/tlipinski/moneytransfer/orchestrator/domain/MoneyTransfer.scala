@@ -1,9 +1,7 @@
 package net.tlipinski.moneytransfer.orchestrator.domain
 
-import io.circe.generic.JsonCodec
 import net.tlipinski.moneytransfer.orchestrator.domain.BankCommand.{ApproveBalance, ChangeBalance, RejectBalance}
 
-@JsonCodec
 case class MoneyTransfer(
     id: TransferId,
     debited: String,

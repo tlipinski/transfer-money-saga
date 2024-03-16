@@ -1,9 +1,7 @@
 package net.tlipinski.moneytransfer.orchestrator.domain
 
-import io.circe.generic.extras.ConfiguredJsonCodec
 import net.tlipinski.util.CodecConfiguration
 
-@ConfiguredJsonCodec
 sealed abstract class BankEvent {
   val userId: String
   val transferId: TransferId

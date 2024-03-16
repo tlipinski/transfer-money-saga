@@ -1,10 +1,9 @@
 import sbt.addCompilerPlugin
 
-ThisBuild / scalaVersion := "2.13.8"
+ThisBuild / scalaVersion := "3.4.0"
 
 ThisBuild / scalacOptions ++= Seq(
   "-language:higherKinds",
-  "-Ymacro-annotations",
   "-deprecation"
 )
 
@@ -20,20 +19,20 @@ ThisBuild / assemblyMergeStrategy := {
 }
 
 val fs2Kafka       = "com.github.fd4s"               %% "fs2-kafka"                      % "2.5.0"
-val quicklens      = "com.softwaremill.quicklens"    %% "quicklens"                      % "1.8.8"
-val sttp           = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % "3.7.6"
-val scalatest      = "org.scalatest"                 %% "scalatest"                      % "3.2.13" % Test
+val quicklens      = "com.softwaremill.quicklens"    %% "quicklens"                      % "1.9.7"
+val sttp           = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % "3.9.4"
+val scalatest      = "org.scalatest"                 %% "scalatest"                      % "3.2.18" % Test
 
 val circe =
-  Seq("circe-core", "circe-generic", "circe-generic-extras", "circe-parser").map("io.circe" %% _ % "0.14.2")
+  Seq("circe-core", "circe-generic", "circe-parser").map("io.circe" %% _ % "0.14.6")
 
 val http4s =
   Seq("http4s-dsl", "http4s-blaze-server", "http4s-blaze-client", "http4s-circe").map("org.http4s" %% _ % "1.0.0-M35")
 
 val commonDeps = Seq(
-  "org.typelevel" %% "log4cats-slf4j"  % "2.4.0",
-  "ch.qos.logback" % "logback-classic" % "1.2.11",
-  "org.typelevel" %% "cats-effect"     % "3.3.14"
+  "org.typelevel" %% "log4cats-slf4j"  % "2.6.0",
+  "ch.qos.logback" % "logback-classic" % "1.5.3",
+  "org.typelevel" %% "cats-effect"     % "3.5.4"
 )
 
 val doobie = Seq(
@@ -41,7 +40,7 @@ val doobie = Seq(
   "doobie-hikari",
   "doobie-postgres",
   "doobie-postgres-circe"
-).map("org.tpolecat" %% _ % "1.0.0-RC4")
+).map("org.tpolecat" %% _ % "1.0.0-RC5")
 
 lazy val transfers = project
   .in(file("transfers"))
@@ -112,8 +111,7 @@ lazy val `test-runner` = project
   .in(file("test-runner"))
   .settings(
     name := "test-runner",
-    libraryDependencies ++= commonDeps ++ http4s :+ sttp,
-    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
+    libraryDependencies ++= commonDeps ++ http4s :+ sttp
   )
   .dependsOn(outbox, saga, util, database, consumer)
 

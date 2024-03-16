@@ -14,7 +14,7 @@ import net.tlipinski.util.Logging
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.implicits._
 import org.http4s.server.Router
-
+import io.circe.generic.auto.*
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -42,7 +42,7 @@ object TransfersMain extends IOApp with Logging {
       val statMoneyTransferUseCase = new StartMoneyTransferUseCase(repo, commandsOutbox, xa)
 
       val handler =
-        new RecordHandler[Message[BankEvent]](handleMessageUseCase.handleMessage)
+        new RecordHandler[Message[BankEvent]](handleMessageUseCase.handleMessage(_))
 
       val transferMoneyRoutes =
         new TransferMoneyRoutes(statMoneyTransferUseCase)

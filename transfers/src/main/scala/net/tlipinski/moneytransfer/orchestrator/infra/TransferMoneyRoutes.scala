@@ -1,13 +1,13 @@
 package net.tlipinski.moneytransfer.orchestrator.infra
 
 import cats.effect._
-import io.circe.generic.JsonCodec
 import net.tlipinski.moneytransfer.orchestrator.application.StartMoneyTransferUseCase
 import net.tlipinski.moneytransfer.orchestrator.domain.{MoneyTransfer, TransferId}
 import net.tlipinski.moneytransfer.orchestrator.infra.TransferMoneyRoutes.TransferMoneyRequest
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
+import io.circe.generic.auto.*
 
 class TransferMoneyRoutes(
     startMoneyTransferUseCase: StartMoneyTransferUseCase
@@ -29,7 +29,6 @@ class TransferMoneyRoutes(
 
 object TransferMoneyRoutes {
 
-  @JsonCodec
   case class TransferMoneyRequest(
       id: String,
       from: String,

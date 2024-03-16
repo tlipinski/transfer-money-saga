@@ -5,6 +5,7 @@ import cats.effect.std.Random
 import doobie.ConnectionIO
 import net.tlipinski.moneytransfer.bank.domain.Balance
 import net.tlipinski.tx.PGDoc
+import io.circe.generic.auto.*
 
 class BalanceRepo(table: String) {
   def modify(userId: String)(f: Balance => ConnectionIO[Option[Balance]]): ConnectionIO[Unit] =

@@ -2,10 +2,10 @@ package net.tlipinski.moneytransfer.bank.infra.publisher
 
 import cats.effect.IO
 import fs2.kafka.{CommittableConsumerRecord, KafkaProducer, ProducerRecord, ProducerRecords}
-import io.circe.generic.JsonCodec
 import io.circe.syntax.EncoderOps
 import net.tlipinski.moneytransfer.bank.infra.publisher.DeadLetterPublisher.DeadLetterJson
 import net.tlipinski.util.Logging
+import io.circe.generic.auto.*
 
 class DeadLetterPublisher(
     producer: KafkaProducer[IO, String, String],
@@ -34,6 +34,5 @@ class DeadLetterPublisher(
 }
 
 object DeadLetterPublisher {
-  @JsonCodec
   case class DeadLetterJson(topic: String, key: String, value: String, record: String, cause: String)
 }

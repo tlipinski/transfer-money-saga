@@ -1,15 +1,13 @@
 package net.tlipinski.sagas
 
 import cats.implicits.catsSyntaxEitherId
-import com.softwaremill.quicklens.ModifyPimp
-import io.circe.generic.JsonCodec
-import io.circe.generic.extras.ConfiguredJsonCodec
+import com.softwaremill.quicklens.*
 import net.tlipinski.sagas.Saga.ProgressFailed.{AlreadyCompleted, UnexpectedMessage}
 import net.tlipinski.sagas.Saga.StageType.{Completed, InProgress, RolledBack}
 import net.tlipinski.sagas.Saga._
 import net.tlipinski.util.CodecConfiguration
 
-case class Saga[D, E, C] private (
+case class Saga[D, E, C] (
     definition: SagaDefinition[D, E, C],
     stage: Stage[D]
 ) {
@@ -56,10 +54,8 @@ object Saga {
 
   case class StageChanged[D, E, C](commands: List[C], updated: Saga[D, E, C])
 
-  @JsonCodec
   case class Stage[D](data: D, stage: StageType)
 
-  @ConfiguredJsonCodec
   sealed trait StageType
   object StageType extends CodecConfiguration {
     case class InProgress(stepId: String) extends StageType

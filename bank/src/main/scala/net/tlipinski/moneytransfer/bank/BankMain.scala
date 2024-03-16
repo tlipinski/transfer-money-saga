@@ -14,6 +14,7 @@ import net.tlipinski.moneytransfer.bank.infra.BalanceRepo
 import net.tlipinski.moneytransfer.bank.infra.publisher.{DeadLetterPublisher, RetryUntilDead}
 import net.tlipinski.publisher.RecordHandler
 import net.tlipinski.tx.{Message, OutboxWriter, PG}
+import io.circe.generic.auto.*
 
 import scala.concurrent.duration.DurationInt
 
@@ -50,7 +51,7 @@ object BankMain extends IOApp {
         )
       }
 
-      val handler = new RecordHandler[Message[BankCommand]](commandsHandler.handle)
+      val handler = new RecordHandler[Message[BankCommand]](commandsHandler.handle(_))
 
       val retryUntilDead = {
         val deadLetterPublisher = new DeadLetterPublisher(producer, "dead-letter-queue")

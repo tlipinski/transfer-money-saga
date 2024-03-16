@@ -1,9 +1,7 @@
 package net.tlipinski.tx
 
 import cats.implicits.{catsSyntaxOptionId, none}
-import io.circe.generic.JsonCodec
 
-@JsonCodec
 case class Message[A](replyTo: Option[String], message: A)
 
 object Message {

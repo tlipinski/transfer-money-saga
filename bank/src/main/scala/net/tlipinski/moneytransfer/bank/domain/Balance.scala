@@ -1,8 +1,7 @@
 package net.tlipinski.moneytransfer.bank.domain
 
 import cats.implicits.catsSyntaxEitherId
-import com.softwaremill.quicklens.ModifyPimp
-import io.circe.generic.JsonCodec
+import com.softwaremill.quicklens.*
 import net.tlipinski.moneytransfer.bank.domain.Balances.{ChangeBalanceFailure, Transfer, TransferAdded, TransferId}
 import net.tlipinski.moneytransfer.bank.domain.BankEvent.{BalanceChanged, BalanceNotChanged}
 import Balances._
@@ -17,8 +16,8 @@ import net.tlipinski.moneytransfer.bank.domain.Balances.ChangeBalanceFailure.{
   ZeroTransfer
 }
 import net.tlipinski.moneytransfer.bank.domain.Balances.RejectBalanceFailure.{InvalidTransferToReject, TransferApproved}
+import net.tlipinski.moneytransfer.bank.domain.Balances.Transfer
 
-@JsonCodec
 case class Balance(
     userId: String,
     balance: Int,

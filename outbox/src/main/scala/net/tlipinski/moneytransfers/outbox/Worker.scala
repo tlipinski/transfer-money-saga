@@ -12,7 +12,6 @@ import doobie._
 import fs2.Stream
 import fs2.kafka.{KafkaProducer, ProducerRecord, ProducerRecords}
 import io.circe.Json
-import io.circe.generic.JsonCodec
 import io.circe.syntax.EncoderOps
 import net.tlipinski.moneytransfers.outbox.Worker.OutboxMessage
 import net.tlipinski.util.Logging
@@ -63,6 +62,7 @@ class Worker(
   }
 
   private def send(messages: NonEmptyList[OutboxMessage]): IO[Unit] = {
+    import io.circe.generic.auto.*
     for {
       records <- messages.traverse { msg =>
                    logger.debug(s"Preparing to send: $msg") >>
@@ -86,14 +86,12 @@ class Worker(
 
 object Worker {
 
-  @JsonCodec
   case class KafkaMessage(
       id: String,
       replyTo: Option[String],
       message: Json
   )
 
-  @JsonCodec
   case class OutboxMessage(
       id: String,
       topic: String,
