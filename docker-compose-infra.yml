@@ -1,4 +1,4 @@
-version: '3.8'
+name: tms-infra
 
 services:
   postgres:
@@ -9,7 +9,7 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - ${PWD}/pg-init.sql:/docker-entrypoint-initdb.d/pg-init.sql
+      - ./pg-init.sql:/docker-entrypoint-initdb.d/pg-init.sql
 
   pgadmin:
     image: dpage/pgadmin4
@@ -20,6 +20,8 @@ services:
       PGADMIN_LISTEN_ADDRESS: 0.0.0.0
     ports:
       - 9090:80
+    volumes:
+      - ./servers.json:/pgadmin4/servers.json
 
   zookeeper:
     image: wurstmeister/zookeeper

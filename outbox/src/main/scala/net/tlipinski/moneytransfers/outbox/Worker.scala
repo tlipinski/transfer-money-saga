@@ -2,17 +2,15 @@ package net.tlipinski.moneytransfers.outbox
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import cats.implicits._
-import doobie.ConnectionIO
-import doobie.implicits._
+import cats.implicits.*
+import doobie.*
+import doobie.implicits.*
+import doobie.postgres.circe.json.implicits.*
+import doobie.postgres.implicits.*
 import doobie.util.transactor.Transactor
-import doobie.postgres.implicits._
-import doobie.postgres.circe.json.implicits._
-import doobie._
 import fs2.Stream
 import fs2.kafka.{KafkaProducer, ProducerRecord, ProducerRecords}
-import io.circe.Json
-import io.circe.generic.JsonCodec
+import io.circe.{Encoder, Json}
 import io.circe.syntax.EncoderOps
 import net.tlipinski.moneytransfers.outbox.Worker.OutboxMessage
 import net.tlipinski.util.Logging
@@ -86,14 +84,12 @@ class Worker(
 
 object Worker {
 
-  @JsonCodec
   case class KafkaMessage(
       id: String,
       replyTo: Option[String],
       message: Json
-  )
+  ) derives Encoder.AsObject
 
-  @JsonCodec
   case class OutboxMessage(
       id: String,
       topic: String,

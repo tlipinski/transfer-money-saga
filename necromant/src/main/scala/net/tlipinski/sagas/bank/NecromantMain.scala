@@ -2,10 +2,10 @@ package net.tlipinski.sagas.bank
 
 import cats.effect.{ExitCode, IO, IOApp}
 import fs2.Stream
-import fs2.kafka._
+import fs2.kafka.*
 import net.tlipinski.publisher.RecordHandler
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 object NecromantMain extends IOApp {
 
@@ -28,7 +28,7 @@ object NecromantMain extends IOApp {
       val reprocessService = new ReprocessService(producer)
 
       val handler =
-        new RecordHandler[DeadLetterJson](reprocessService.handle)
+        new RecordHandler[DeadLetterJson](reprocessService.handle(_))
 
       Stream
         .emit(consumer)

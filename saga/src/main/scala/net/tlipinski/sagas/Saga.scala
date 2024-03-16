@@ -1,15 +1,15 @@
 package net.tlipinski.sagas
 
-import cats.implicits.catsSyntaxEitherId
-import com.softwaremill.quicklens.ModifyPimp
-import io.circe.generic.JsonCodec
-import io.circe.generic.extras.ConfiguredJsonCodec
+import com.softwaremill.quicklens.*
+import cats.syntax.all.*
+import io.circe.{Codec, Decoder, Encoder}
+import io.circe.derivation.{ConfiguredCodec, ConfiguredEnumCodec}
+import net.tlipinski.sagas.Saga.*
 import net.tlipinski.sagas.Saga.ProgressFailed.{AlreadyCompleted, UnexpectedMessage}
 import net.tlipinski.sagas.Saga.StageType.{Completed, InProgress, RolledBack}
-import net.tlipinski.sagas.Saga._
 import net.tlipinski.util.CodecConfiguration
 
-case class Saga[D, E, C] private (
+case class Saga[D, E, C](
     definition: SagaDefinition[D, E, C],
     stage: Stage[D]
 ) {
@@ -19,7 +19,7 @@ case class Saga[D, E, C] private (
       val current = currentStep(stepId)
       if (current.handleResponse.isDefinedAt(event, stage.data)) {
         current.handleResponse(event, stage.data) match {
-          case SagaForward =>
+          case Progress.SagaForward =>
             nextStep(current.id).fold(
               StageChanged(List.empty, this.modify(_.stage.stage).setTo(Completed)).asRight[ProgressFailed]
             ) { next =>
@@ -27,7 +27,7 @@ case class Saga[D, E, C] private (
                 .asRight[ProgressFailed]
             }
 
-          case SagaRollback =>
+          case Progress.SagaRollback =>
             val completedSteps = definition.steps.toList.takeWhile(_.id != current.id)
             StageChanged(
               completedSteps.flatMap(_.compensation(stage.data)),
@@ -56,15 +56,12 @@ object Saga {
 
   case class StageChanged[D, E, C](commands: List[C], updated: Saga[D, E, C])
 
-  @JsonCodec
-  case class Stage[D](data: D, stage: StageType)
+  case class Stage[D](data: D, stage: StageType) derives Encoder.AsObject, Decoder
 
-  @ConfiguredJsonCodec
-  sealed trait StageType
-  object StageType extends CodecConfiguration {
-    case class InProgress(stepId: String) extends StageType
-    case object RolledBack                extends StageType
-    case object Completed                 extends StageType
+  enum StageType {
+    case InProgress(stepId: String)
+    case RolledBack
+    case Completed
   }
 
   case class Step[D, E, C](
@@ -74,14 +71,16 @@ object Saga {
       handleResponse: PartialFunction[(E, D), Progress]
   )
 
-  sealed trait Progress
-  case object SagaForward  extends Progress
-  case object SagaRollback extends Progress
+  enum Progress {
+    case SagaForward, SagaRollback
+  }
 
-  sealed trait ProgressFailed
-  object ProgressFailed {
-    case object AlreadyCompleted  extends ProgressFailed
-    case object UnexpectedMessage extends ProgressFailed
+  enum ProgressFailed {
+    case AlreadyCompleted, UnexpectedMessage
+  }
+
+  object StageType extends CodecConfiguration {
+    given Codec[StageType] = ConfiguredCodec.derived
   }
 
 }

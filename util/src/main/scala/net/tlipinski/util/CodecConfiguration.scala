@@ -1,9 +1,9 @@
 package net.tlipinski.util
 
-import io.circe.generic.extras.Configuration
+import io.circe.derivation.Configuration
 
 trait CodecConfiguration {
-  implicit val configuration: Configuration =
+  given Configuration =
     Configuration.default.withKebabCaseConstructorNames
       .withDiscriminator("type")
 }

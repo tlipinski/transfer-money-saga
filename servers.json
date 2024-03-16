@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "TMS",
+      "Group": "Servers",
+      "Port": 5432,
+      "Username": "postgres",
+      "Host": "192.168.0.80",
+      "SSLMode": "prefer",
+      "MaintenanceDB": "postgres",
+      "PasswordExecCommand": "echo 'password'"
+    }
+  }
+}

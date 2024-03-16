@@ -1,15 +1,15 @@
 package net.tlipinski.moneytransfer.bank.domain
 
-import io.circe.generic.extras.ConfiguredJsonCodec
+import io.circe.Codec
+import io.circe.derivation.ConfiguredCodec
 import net.tlipinski.util.CodecConfiguration
 
-@ConfiguredJsonCodec(encodeOnly = true)
-sealed trait BankEvent
+enum BankEvent {
+  case BalanceChanged(userId: String, transferId: String)
+  case BalanceNotChanged(userId: String, transferId: String)
+  case BalanceApproved(userId: String, transferId: String)
+}
 
 object BankEvent extends CodecConfiguration {
-
-  case class BalanceChanged(userId: String, transferId: String)    extends BankEvent
-  case class BalanceNotChanged(userId: String, transferId: String) extends BankEvent
-  case class BalanceApproved(userId: String, transferId: String)   extends BankEvent
-
+  given Codec[BankEvent] = ConfiguredCodec.derived
 }

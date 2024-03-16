@@ -1,10 +1,9 @@
 package net.tlipinski.moneytransfer.orchestrator.domain
 
-import io.circe.Codec
-import io.circe.generic.extras.semiauto.deriveUnwrappedCodec
+import io.circe.{Codec, Decoder, Encoder}
 
-case class TransferId(id: String) extends AnyVal
+case class TransferId(id: String)
 
 object TransferId {
-  implicit val codec: Codec[TransferId] = deriveUnwrappedCodec
+  given Codec[TransferId] = Codec.from(Decoder.decodeString.map(TransferId(_)), Encoder.encodeString.contramap(_.id))
 }
