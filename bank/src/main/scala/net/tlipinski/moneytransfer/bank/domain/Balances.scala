@@ -27,7 +27,7 @@ object Balances {
 
   case class Transfer(id: TransferId, amount: Int)
 
-  case class TransferId(id: String) extends AnyVal
+  case class TransferId(id: String)
 
   implicit class RichEither(e: Either.type) {
     def unless[E, A](test: Boolean, right: A, left: E): Either[E, A] =

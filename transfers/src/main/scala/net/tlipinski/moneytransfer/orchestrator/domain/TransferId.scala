@@ -1,3 +1,3 @@
 package net.tlipinski.moneytransfer.orchestrator.domain
 
-case class TransferId(id: String) extends AnyVal
+case class TransferId(id: String)
