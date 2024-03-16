@@ -14,8 +14,8 @@ object PGDoc {
   def modify[A: Encoder: Decoder](table: String, id: String)(
       f: A => ConnectionIO[Option[A]]
   ): ConnectionIO[(Document[A], Int)] = {
-    implicit val get: Get[A] = Get[Json].temap(_.as[A].leftMap(_.show))
-    implicit val put: Put[A] = Put[Json].contramap(_.asJson)
+    given Get[A] = Get[Json].temap(_.as[A].leftMap(_.show))
+    given Put[A] = Put[Json].contramap(_.asJson)
     for {
       doc     <- (sql"SELECT * FROM " ++ Fragment.const(table) ++ sql" WHERE id = $id").query[Document[A]].unique
       updates <- f(doc.content).flatMap {
@@ -33,7 +33,7 @@ object PGDoc {
   }
 
   def insert[A: Encoder](table: String, id: String, content: A): ConnectionIO[Unit] = {
-    implicit val put: Put[A] = Put[Json].contramap(_.asJson)
+    given Put[A] = Put[Json].contramap(_.asJson)
 
     val doc = Document[A](id, 0, content)
     (sql"INSERT INTO " ++ Fragment.const(table) ++ sql" (id, version, content) VALUES ($doc)").update.run.void

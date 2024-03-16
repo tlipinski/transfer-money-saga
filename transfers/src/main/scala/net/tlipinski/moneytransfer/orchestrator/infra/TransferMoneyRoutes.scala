@@ -13,8 +13,7 @@ class TransferMoneyRoutes(
     startMoneyTransferUseCase: StartMoneyTransferUseCase
 ) extends Http4sDsl[IO] {
 
-  implicit val reqDecoder: EntityDecoder[IO, TransferMoneyRequest] =
-    jsonOf[IO, TransferMoneyRequest]
+  given EntityDecoder[IO, TransferMoneyRequest] = jsonOf[IO, TransferMoneyRequest]
 
   val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case req @ POST -> Root / "transfers" =>
     for {

@@ -18,7 +18,7 @@ ThisBuild / assemblyMergeStrategy := {
     oldStrategy(x)
 }
 
-val fs2Kafka       = "com.github.fd4s"               %% "fs2-kafka"                      % "2.5.0"
+val fs2Kafka       = "com.github.fd4s"               %% "fs2-kafka"                      % "3.3.1"
 val quicklens      = "com.softwaremill.quicklens"    %% "quicklens"                      % "1.9.7"
 val sttp           = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % "3.9.4"
 val scalatest      = "org.scalatest"                 %% "scalatest"                      % "3.2.18" % Test
