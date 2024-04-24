@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="OutboxMain" type="Application" factoryName="Application">
+    <envs>
+      <env name="INSTANCE" value="1" />
+      <env name="TOTAL_INSTANCES" value="1" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="net.tlipinski.moneytransfers.outbox.OutboxMain" />
+    <module name="transfer-money-saga.outbox" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

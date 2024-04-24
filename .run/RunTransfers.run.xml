@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="RunTransfers" type="Application" factoryName="Application" editBeforeRun="true">
+    <option name="MAIN_CLASS_NAME" value="net.tlipinski.moneytransfer.RunTransfers" />
+    <module name="transfer-money-saga.test-runner" />
+    <option name="PROGRAM_PARAMETERS" value="100 500 1000" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

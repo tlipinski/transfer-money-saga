@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="BankMain" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="net.tlipinski.moneytransfer.bank.BankMain" />
+    <module name="transfer-money-saga.bank" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

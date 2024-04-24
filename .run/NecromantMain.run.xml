@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="NecromantMain" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="net.tlipinski.sagas.bank.NecromantMain" />
+    <module name="transfer-money-saga.necromant" />
+    <method v="2" />
+  </configuration>
+</component>
