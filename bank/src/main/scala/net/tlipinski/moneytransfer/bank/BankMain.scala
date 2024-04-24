@@ -50,7 +50,7 @@ object BankMain extends IOApp {
         )
       }
 
-      val handler = new RecordHandler[Message[BankCommand]](commandsHandler.handle)
+      val handler = new RecordHandler[Message[BankCommand]](commandsHandler.handle(_))
 
       val retryUntilDead = {
         val deadLetterPublisher = new DeadLetterPublisher(producer, "dead-letter-queue")

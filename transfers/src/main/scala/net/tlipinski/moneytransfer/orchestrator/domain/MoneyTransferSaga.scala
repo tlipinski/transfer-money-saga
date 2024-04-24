@@ -2,7 +2,8 @@ package net.tlipinski.moneytransfer.orchestrator.domain
 
 import cats.implicits.{catsSyntaxOptionId, none}
 import net.tlipinski.moneytransfer.orchestrator.domain.BankEvent.{BalanceApproved, BalanceChanged, BalanceNotChanged}
-import net.tlipinski.sagas.Saga.{SagaForward, SagaRollback, Step}
+import net.tlipinski.sagas.Saga.Progress.*
+import net.tlipinski.sagas.Saga.Step
 import net.tlipinski.sagas.SagaDefinition
 
 object MoneyTransferSaga {

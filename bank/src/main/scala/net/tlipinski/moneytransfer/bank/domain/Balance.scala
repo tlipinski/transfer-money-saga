@@ -1,11 +1,9 @@
 package net.tlipinski.moneytransfer.bank.domain
 
 import cats.implicits.catsSyntaxEitherId
-import com.softwaremill.quicklens.ModifyPimp
-import io.circe.generic.JsonCodec
-import net.tlipinski.moneytransfer.bank.domain.Balances.{ChangeBalanceFailure, Transfer, TransferAdded, TransferId}
-import net.tlipinski.moneytransfer.bank.domain.BankEvent.{BalanceChanged, BalanceNotChanged}
-import Balances._
+import com.softwaremill.quicklens.*
+import io.circe.{Codec, Decoder, Encoder}
+import io.circe.generic.semiauto.deriveCodec
 import net.tlipinski.moneytransfer.bank.domain.Balances.ApproveBalanceFailure.{
   AlreadyApproved,
   InvalidTransferToApprove
@@ -17,14 +15,16 @@ import net.tlipinski.moneytransfer.bank.domain.Balances.ChangeBalanceFailure.{
   ZeroTransfer
 }
 import net.tlipinski.moneytransfer.bank.domain.Balances.RejectBalanceFailure.{InvalidTransferToReject, TransferApproved}
+import net.tlipinski.moneytransfer.bank.domain.Balances.*
+import net.tlipinski.moneytransfer.bank.domain.BankEvent.{BalanceChanged, BalanceNotChanged}
 
-@JsonCodec
 case class Balance(
     userId: String,
     balance: Int,
     pending: List[Transfer],
     processed: List[TransferId]
-) {
+) derives Encoder.AsObject,
+      Decoder {
 
   def changeBalance(id: TransferId, amount: Int): Either[ChangeBalanceFailure, TransferAdded] = {
     for {

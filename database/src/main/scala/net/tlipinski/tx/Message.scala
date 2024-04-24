@@ -1,9 +1,9 @@
 package net.tlipinski.tx
 
 import cats.implicits.{catsSyntaxOptionId, none}
-import io.circe.generic.JsonCodec
+import io.circe.Codec
+import io.circe.generic.semiauto.deriveCodec
 
-@JsonCodec
 case class Message[A](replyTo: Option[String], message: A)
 
 object Message {
@@ -14,4 +14,6 @@ object Message {
   def withReply[A](message: A, replyTo: String): Message[A] = {
     Message(replyTo.some, message)
   }
+
+  given [A: Codec]: Codec[Message[A]] = deriveCodec
 }

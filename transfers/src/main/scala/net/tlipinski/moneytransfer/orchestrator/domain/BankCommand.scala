@@ -1,15 +1,15 @@
 package net.tlipinski.moneytransfer.orchestrator.domain
 
-import io.circe.generic.extras.ConfiguredJsonCodec
+import io.circe.Codec
+import io.circe.derivation.ConfiguredCodec
 import net.tlipinski.util.CodecConfiguration
 
-@ConfiguredJsonCodec
-sealed trait BankCommand
+enum BankCommand {
+  case ChangeBalance(userId: String, transferId: TransferId, amount: Int)
+  case RejectBalance(userId: String, transferId: TransferId)
+  case ApproveBalance(userId: String, transferId: TransferId)
+}
 
 object BankCommand extends CodecConfiguration {
-
-  case class ChangeBalance(userId: String, transferId: TransferId, amount: Int) extends BankCommand
-  case class RejectBalance(userId: String, transferId: TransferId)              extends BankCommand
-  case class ApproveBalance(userId: String, transferId: TransferId)             extends BankCommand
-
+  given Codec[BankCommand] = ConfiguredCodec.derived
 }

@@ -1,6 +1,5 @@
 package net.tlipinski.sagas.bank
 
-import io.circe.generic.JsonCodec
+import io.circe.Decoder
 
-@JsonCodec
-case class DeadLetterJson(topic: String, key: String, value: String, record: String, cause: String)
+case class DeadLetterJson(topic: String, key: String, value: String, record: String, cause: String) derives Decoder
